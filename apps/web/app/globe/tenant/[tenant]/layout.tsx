@@ -8,6 +8,7 @@ import {
   Bell,
   Globe,
   LayoutDashboard,
+  Link2,
   Menu,
   Moon,
   Package,
@@ -24,13 +25,14 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 
 const tenantModules = [
-  { href: "",                     label: "Dashboard",               icon: LayoutDashboard },
-  { href: "/inventory",           label: "Inventory",               icon: Package },
-  { href: "/logistics",           label: "Logistics",               icon: Truck },
-  { href: "/suppliers",           label: "Suppliers",               icon: BarChart3 },
-  { href: "/users",               label: "Users",                   icon: Users },
-  { href: "/automation",          label: "Automation & Integration",icon: Zap },
-  { href: "/logistic-management", label: "Logistic Management",     icon: Route },
+  { href: "",                     label: "Dashboard",           icon: LayoutDashboard },
+  { href: "/inventory",           label: "Inventory",           icon: Package },
+  { href: "/logistics",           label: "Logistics",           icon: Truck },
+  { href: "/suppliers",           label: "Suppliers",           icon: BarChart3 },
+  { href: "/users",               label: "Users",               icon: Users },
+  { href: "/automation",          label: "Automation",         icon: Zap },
+  { href: "/integration",         label: "Integration",        icon: Link2 },
+  { href: "/logistic-management", label: "Logistic Management", icon: Route },
 ];
 
 const globalLinks = [

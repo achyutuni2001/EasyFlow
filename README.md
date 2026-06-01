@@ -66,40 +66,62 @@ This repo is the foundation for that vision.
 
 ## Architecture
 
-The platform is organized into three primary layers:
+EasyFlow is organized around five product concerns:
 
-1. **Web UI** (`apps/web`) — tenant dashboard, integration settings, workflow onboarding.
-2. **API** (`apps/api`) — tenant registry, workflow lifecycle, notification publishing, connector CRUD.
-3. **Runtime/Worker** — RabbitMQ consumer, retry + DLQ semantics, Prometheus metrics, workflow execution engine.
+1. **Business Process Design** — each tenant defines its own process graph in the web canvas.
+2. **Tenant-Aware API Layer** — FastAPI enforces superadmin versus tenant-admin access boundaries.
+3. **Workflow Persistence** — tenant, user, connector, node, and edge data live in the platform data model.
+4. **Async Execution Runtime** — RabbitMQ and the worker execute workflow events outside the request path.
+5. **Connector + AI Extensions** — ERP/WMS integrations and AI analysis sit on top of the workflow graph.
 
-::: mermaid
-flowchart LR
-  subgraph frontend[Frontend]
-    A[Next.js Dashboard] -->|calls| B(API)
-  end
-  subgraph api[API Layer]
-    B[FastAPI] --> C[Registry DB]
-    B --> D[Connector Configs]
-    B -->|publish events| E[RabbitMQ]
-  end
-  subgraph worker[Runtime]
-    F[Worker Consumer] -->|reads events| E
-    F --> G[Workflow Engine]
-    F -->|metrics| H[Prometheus]
-  end
-  subgraph integrations[Integrations]
-    G --> I[Connector SDK]
-    I --> J[ERP/WMS APIs]
-  end
-  B --> K[Health + Metrics]
-  H --> K
-  E --> F
-  B --> L[Tenants]
-  K --> L
-end
-:::
+### Product Architecture
 
-Read the full architecture details in [ARCHITECTURE.md](./ARCHITECTURE.md).
+![EasyFlow Product Architecture](./docs/diagrams/platform-architecture.svg)
+
+This diagram shows the full product shape.
+
+- **Users** enter through the web application as `superadmin`, `tenant admin`, or analyst/operator roles.
+- **`apps/web`** contains the business process canvas, tenant dashboards, settings, and AI insight surfaces.
+- **`apps/api`** acts as the control plane for tenant management, workflow APIs, notifications, and connector CRUD.
+- **Persistence** is split conceptually between the central registry data and tenant workflow data.
+- **RabbitMQ + the worker** form the async runtime so workflow execution and side effects do not block UI requests.
+- **External systems** are reached through the pluggable connector SDK, while AI insight calls sit beside the operational flow.
+
+### Request To Execution Flow
+
+![EasyFlow Workflow Execution Flow](./docs/diagrams/execution-flow.svg)
+
+This diagram explains how a single workflow action moves through the system.
+
+1. A tenant admin edits or simulates a business process from the canvas.
+2. The web app sends that request to FastAPI.
+3. FastAPI validates the actor, resolves tenant scope, and loads the workflow definition.
+4. The API publishes an event into RabbitMQ instead of doing heavy execution inline.
+5. The worker consumes the event, loads tenant workflow data, and invokes the workflow engine.
+6. The workflow engine validates the graph and produces execution state and timeline output.
+7. If the workflow needs external synchronization, the worker calls ERP/WMS systems through the connector SDK.
+8. The worker emits completion, retry, alert, and metrics signals back into the platform.
+
+This is the core architectural distinction of EasyFlow: the UI is for modeling and control, while the runtime handles execution asynchronously.
+
+### Tenant Isolation Model
+
+![EasyFlow Tenant Isolation Model](./docs/diagrams/tenant-isolation.svg)
+
+This diagram explains the security and control boundary.
+
+- A **tenant admin** can manage only the users, process graph, and connectors inside that tenant.
+- A **superadmin** is the only role allowed to operate across all tenants.
+- Each tenant owns its own process graph and integration surface.
+- This keeps EasyFlow multi-tenant without turning it into a single shared workflow namespace.
+
+That access model already exists in the backend scaffold:
+
+- `superadmin` has cross-tenant workflow control.
+- `tenant_admin` is tenant-scoped.
+- `analyst` is limited to tenant-local views.
+
+Read the fuller engineering breakdown in [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ---
 
