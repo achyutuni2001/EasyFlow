@@ -167,6 +167,65 @@ As forecasting and AI capabilities mature, EasyFlow can warn users about likely 
 
 ---
 
+## Product Screens And Screenshot Labels
+
+If you want to add product screenshots to GitHub, use the labels below. These are written so a recruiter, hiring manager, or non-technical viewer can understand what each screen represents immediately.
+
+### Platform-Level Screens
+
+| Screen Label | Route | What It Shows |
+|---|---|---|
+| `Global Supply Chain Globe` | `/globe` | The landing experience where users enter the product through a world view of tenant workspaces. |
+| `Operations Dashboard` | `/dashboard` | A summary view of operational health, bottlenecks, and current activity across a tenant context. |
+| `Business Process Canvas` | `/workflows` | The visual process-mapping screen where business workflows are designed and managed. |
+| `Forecasting Dashboard` | `/forecasting` | Forward-looking operational views, predictive metrics, and early warning signals. |
+| `Integrations Settings` | `/settings` | The platform-level screen for integration and system configuration. |
+
+### Tenant Workspace Screens
+
+| Screen Label | Route | What It Shows |
+|---|---|---|
+| `Tenant Workspace Overview` | `/globe/tenant/[tenant]` | The main entry point for a specific tenant workspace. |
+| `Tenant Inventory View` | `/globe/tenant/[tenant]/inventory` | Inventory visibility, stock state, and warehouse-related operational information. |
+| `Tenant Logistics View` | `/globe/tenant/[tenant]/logistics` | Shipment and logistics activity for a tenant. |
+| `Tenant Supplier View` | `/globe/tenant/[tenant]/suppliers` | Supplier performance, supplier relationships, and vendor-side workflow context. |
+| `Tenant Users And Roles` | `/globe/tenant/[tenant]/users` | The tenant-level user and access view. |
+| `Tenant Automation Hub` | `/globe/tenant/[tenant]/automation` | Workflow automation and operational orchestration for a tenant. |
+| `Tenant Integration Hub` | `/globe/tenant/[tenant]/integration` | Tenant-specific connectors and external system configuration. |
+| `Tenant Logistics Management` | `/globe/tenant/[tenant]/logistic-management` | Deeper transport and logistics control workflows. |
+
+### Workflow Detail Screens
+
+| Screen Label | Route | What It Shows |
+|---|---|---|
+| `Workflow Node Detail` | `/workflows/[nodeId]` | A focused view of one workflow node and its business context. |
+
+### Suggested Screenshot Captions
+
+Use captions like these under screenshots in GitHub, LinkedIn, or portfolio material:
+
+- `Global Supply Chain Globe` — Multi-tenant landing experience for navigating operational workspaces.
+- `Business Process Canvas` — Visual workflow design surface for mapping supply chain business processes.
+- `Operations Dashboard` — Simplified decision-support dashboard for operational monitoring and action.
+- `Forecasting Dashboard` — Predictive operational view for identifying risk before it becomes disruption.
+- `Tenant Workspace Overview` — Tenant-specific operating environment with isolated process and data views.
+- `Tenant Integration Hub` — Connector configuration layer for linking existing ERP, WMS, and external systems.
+
+### Recommended Screenshot Order For GitHub
+
+If you want a clean README story, use screenshots in this order:
+
+1. `Global Supply Chain Globe`
+2. `Tenant Workspace Overview`
+3. `Business Process Canvas`
+4. `Operations Dashboard`
+5. `Forecasting Dashboard`
+6. `Tenant Integration Hub`
+
+That sequence tells the product story from entry point to daily usage to future-facing intelligence.
+
+---
+
 ## Vision
 
 EasyFlow will become the open source orchestration fabric for supply chain teams who need:
