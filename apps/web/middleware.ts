@@ -4,6 +4,8 @@ const PUBLIC_PAGE_PATHS = [
   "/",
   "/landing",
   "/login",
+  "/pitch",
+  "/connectors",
   "/docs",
   "/demo",
   "/globe",

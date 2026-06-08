@@ -27,17 +27,19 @@ export const DOCS_CONTENT: Record<string, DocContent> = {
   "the-problem": {
     section: "Why EasyFlow",
     title: "The Problem We Solve",
-    description: "Why supply chain teams are still stuck with spreadsheets, email chains, and missed shipments — and what we're doing about it.",
+    description: "Why supply chain teams are still stuck with spreadsheets, email chains, and missed shipments, and what we're doing about it.",
     toc: [
       { label: "The daily reality", anchor: "reality", level: 2 },
       { label: "Where things break down", anchor: "breakdown", level: 2 },
       { label: "The cost of broken coordination", anchor: "cost", level: 2 },
+      { label: "What AI adds", anchor: "ai-layer", level: 2 },
       { label: "What EasyFlow changes", anchor: "solution", level: 2 },
     ],
     blocks: [
       { type: "h2", id: "reality", text: "The daily reality of supply chain teams" },
       { type: "p", text: "Ask any supply chain manager how they coordinate purchase orders, supplier confirmations, and warehouse handoffs. The honest answer is usually: email threads, shared chats, and an enormous spreadsheet that only one person really understands." },
-      { type: "p", text: "Their ERP system — SAP, Oracle, Dynamics — holds the data. But it can't answer the question that actually matters every morning: what needs to happen right now, who's responsible, and is anything stuck?" },
+      { type: "p", text: "Their operational systems may include SAP, Oracle, Microsoft Dynamics, NetSuite, Infor, or other planning and warehouse tools. Those systems hold the data, but they still do not answer the question that matters every morning: what needs to happen right now, who owns it, and is anything stuck?" },
+      { type: "p", text: "Even when the data is technically available, it is still hard to interrogate. Teams can see rows and reports, but they cannot ask the system to explain why inventory is falling, which supplier is now causing downstream risk, or what needs attention first." },
       { type: "callout", variant: "info", text: "A 2023 Gartner study found that 67% of supply chain professionals still rely on spreadsheets as their primary coordination tool, despite using enterprise ERP systems." },
 
       { type: "h2", id: "breakdown", text: "Where things break down" },
@@ -52,21 +54,27 @@ export const DOCS_CONTENT: Record<string, DocContent> = {
 
       { type: "h2", id: "cost", text: "The cost of broken coordination" },
       { type: "list", items: [
-        "Stock-outs cost retailers an average of 4% of annual revenue — most are caused by delayed reorder approvals, not forecasting errors.",
+        "Stock-outs cost retailers an average of 4% of annual revenue. Many are caused by delayed reorder approvals, not forecasting errors.",
         "Purchase order approval delays average 3.2 days in mid-market companies. That's 3.2 days of supplier slot risk on every order.",
         "Logistics teams spend 40% of their time chasing status updates that should be automatic.",
         "Every manual handoff is a potential error. Manual re-entry of ERP data into spreadsheets introduces mistakes in 1 in 12 entries.",
       ]},
 
+      { type: "h2", id: "ai-layer", text: "What AI adds" },
+      { type: "p", text: "The problem is not just missing workflow. It is also missing interpretation. Supply chain teams need a system that can explain what changed, why it matters, and what should happen next." },
+      { type: "p", text: "That is why EasyFlow includes an AI agent layer. FlowGuide sits on top of the same tenant-scoped operational data and helps users ask natural questions such as: which warehouse needs attention, why is a shipment delayed, what approvals are blocking progress, or which SKU is likely to stock out first." },
+      { type: "callout", variant: "tip", text: "EasyFlow is designed so the AI agent does not replace operations teams. It helps them interpret raw enterprise data faster and act with more context." },
+
       { type: "h2", id: "solution", text: "What EasyFlow changes" },
       { type: "p", text: "EasyFlow is the coordination layer that was missing. It sits on top of your existing ERP and gives every supply chain process a clear owner, a clear next step, and automatic escalation when something gets stuck." },
-      { type: "p", text: "Your ERP keeps being the system of record. EasyFlow becomes the system of action — the place where people do the work, track the handoffs, and see what's actually happening right now." },
+      { type: "p", text: "Your ERP remains the system of record. EasyFlow becomes the system of action and interpretation, the place where people do the work, track the handoffs, see what is happening right now, and ask the AI agent to explain what needs attention." },
       { type: "list", items: [
-        "Draw your exact approval process on a visual canvas — not someone else's template",
+        "Draw your exact approval process on a visual canvas, not someone else's template",
         "Every step has an owner, a deadline, and automatic escalation",
-        "Your ERP data flows in via webhooks — no manual re-entry",
-        "Every company gets its own isolated workspace — no data mixing",
-        "100% open source — run it on your own servers, no SaaS fees",
+        "Your ERP data flows in via webhooks, with no manual re-entry",
+        "AI helps teams interrogate the operational state in plain language instead of reading raw tables only",
+        "Every company gets its own isolated workspace, with no data mixing",
+        "100% open source, so you can run it on your own servers without SaaS fees",
       ]},
     ],
   },
