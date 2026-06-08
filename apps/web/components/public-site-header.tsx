@@ -4,7 +4,7 @@ import Link from "next/link";
 
 type PublicSiteHeaderProps = {
   variant?: "dark" | "light";
-  current?: "landing" | "pitch" | "docs";
+  current?: "landing" | "pitch" | "docs" | "connectors";
 };
 
 const repoUrl = "https://github.com/achyutuni2001/EasyFlow";
@@ -28,7 +28,7 @@ export function PublicSiteHeader({
 
   const navItems = [
     { href: "/landing#screens", label: "Features", key: "landing" },
-    { href: "/docs/connect-erp", label: "Connectors", key: "docs" },
+    { href: "/connectors", label: "Connectors", key: "connectors" },
     { href: "/pitch", label: "Pitch", key: "pitch" },
     { href: "/docs", label: "Docs", key: "docs" },
   ] as const;

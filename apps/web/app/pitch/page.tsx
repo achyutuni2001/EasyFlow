@@ -265,7 +265,7 @@ export default function PitchPage() {
                   Open the product <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
-                  href="/docs/connect-erp"
+                  href="/connectors"
                   className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white px-6 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-900/15 hover:text-slate-950"
                 >
                   Explore connectors

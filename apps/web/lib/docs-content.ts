@@ -36,7 +36,7 @@ export const DOCS_CONTENT: Record<string, DocContent> = {
     ],
     blocks: [
       { type: "h2", id: "reality", text: "The daily reality of supply chain teams" },
-      { type: "p", text: "Ask any supply chain manager how they coordinate purchase orders, supplier confirmations, and warehouse handoffs. The honest answer is usually: email, WhatsApp, and an enormous spreadsheet that only one person really understands." },
+      { type: "p", text: "Ask any supply chain manager how they coordinate purchase orders, supplier confirmations, and warehouse handoffs. The honest answer is usually: email threads, shared chats, and an enormous spreadsheet that only one person really understands." },
       { type: "p", text: "Their ERP system — SAP, Oracle, Dynamics — holds the data. But it can't answer the question that actually matters every morning: what needs to happen right now, who's responsible, and is anything stuck?" },
       { type: "callout", variant: "info", text: "A 2023 Gartner study found that 67% of supply chain professionals still rely on spreadsheets as their primary coordination tool, despite using enterprise ERP systems." },
 
