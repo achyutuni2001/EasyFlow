@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 
 import { HomeFlow } from "@/components/home-flow";
+import { PublicSiteHeader } from "@/components/public-site-header";
 import { SupplyChainBg } from "@/components/supply-chain-bg";
 
 const highlights = [
@@ -113,41 +114,7 @@ export default function LandingPage() {
       />
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 grid-sheen opacity-60" />
 
-      <header className="relative z-20 flex items-center justify-between border-b border-white/8 px-6 py-4 backdrop-blur-md md:px-10">
-        <Link href="/landing" className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-            <span className="brand-wordmark text-[0.9rem]">
-              <span>E</span><span>F</span>
-            </span>
-          </div>
-          <span className="brand-wordmark text-[1.45rem]">
-            <span>Easy</span><span>Flow</span>
-          </span>
-        </Link>
-
-        <nav className="hidden items-center gap-6 text-[0.82rem] font-medium text-white/45 md:flex">
-          <a href="#idea" className="transition hover:text-white/80">Why EasyFlow</a>
-          <a href="#screens" className="transition hover:text-white/80">Screens</a>
-          <a href="#use-cases" className="transition hover:text-white/80">Use cases</a>
-          <a href="#how-it-works" className="transition hover:text-white/80">How it works</a>
-          <a href="#documentation" className="transition hover:text-white/80">Docs</a>
-        </nav>
-
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/globe"
-            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.82rem] font-medium text-white/70 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
-          >
-            Open app
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-full bg-[hsl(184,73%,61%)] px-4 py-2 text-[0.82rem] font-semibold text-slate-950 transition hover:brightness-105"
-          >
-            Sign in
-          </Link>
-        </div>
-      </header>
+      <PublicSiteHeader variant="dark" current="landing" />
 
       <main className="relative z-10">
         <section id="idea" className="relative mx-auto min-h-[calc(100svh-73px)] max-w-6xl overflow-hidden px-6 pb-10 pt-10 md:px-10 md:pb-14 md:pt-12">
@@ -166,8 +133,9 @@ export default function LandingPage() {
             <p className="mt-4 text-[0.74rem] font-medium uppercase tracking-[0.17em] text-white/30 md:text-[0.8rem]">
               Easy insights. Clear visibility. Faster decisions.
             </p>
-            <p className="mx-auto mt-5 max-w-xl text-[0.92rem] leading-7 text-white/50">
-              Workflow coordination and operational visibility for modern supply chain teams.
+            <p className="mx-auto mt-5 max-w-2xl text-[0.92rem] leading-7 text-white/50">
+              A visual operating layer on top of raw enterprise supply chain data. EasyFlow turns ERP signals,
+              warehouse events, order backlogs, and supplier issues into something teams can actually understand and act on.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
