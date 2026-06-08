@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     rabbitmq_exchange: str = "easyflow.events"
     rabbitmq_routing_prefix: str = "workflow"
 
+    # Webhook auth — generate with: openssl rand -hex 32
+    webhook_secret_key: str = Field(
+        default="change-me-in-production",
+        description="HMAC secret used to verify inbound webhook tokens.",
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

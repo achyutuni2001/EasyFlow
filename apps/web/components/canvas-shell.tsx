@@ -65,7 +65,7 @@ export function CanvasShell({ children, title, subtitle }: CanvasShellProps) {
                 <Bell className="h-3 w-3" />
               </button>
               <Button variant="outline" size="sm" className="h-8 rounded-xl px-3 text-[0.74rem]">
-                AI Copilot
+                FlowGuide
               </Button>
             </div>
           </div>

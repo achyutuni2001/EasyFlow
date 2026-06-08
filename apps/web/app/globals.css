@@ -119,10 +119,29 @@
   /* Main content panels */
   html.light .rounded-\[24px\].border,
   html.light .rounded-\[28px\].border,
-  html.light .rounded-\[20px\].border {
+  html.light .rounded-\[20px\].border,
+  html.light .rounded-\[18px\].border {
     border-color: rgba(0,0,0,0.09) !important;
     background-color: white !important;
   }
+
+  /* Hardcoded dark backgrounds used on module cards and canvas panels */
+  html.light .bg-\[hsl\(217\,45\%\,8\%\)\] { background-color: hsl(220,20%,98%) !important; }
+  html.light .bg-white\/\[0\.02\]          { background-color: hsl(220,15%,97%) !important; }
+  html.light .bg-white\/\[0\.07\]          { background-color: hsl(220,15%,95%) !important; }
+  html.light .bg-white\/\[0\.08\]          { background-color: hsl(220,15%,94%) !important; }
+  html.light .bg-cyan-950\/40             { background-color: hsl(184,40%,94%) !important; }
+  html.light .bg-orange-950\/40           { background-color: hsl(25,50%,94%)  !important; }
+  html.light .bg-lime-950\/40             { background-color: hsl(82,40%,93%)  !important; }
+  html.light .bg-purple-950\/40           { background-color: hsl(270,40%,94%) !important; }
+  html.light .bg-yellow-950\/40           { background-color: hsl(45,40%,93%)  !important; }
+  html.light .bg-blue-950\/40             { background-color: hsl(200,40%,93%) !important; }
+  html.light .border-cyan-800\/30         { border-color: hsl(184,40%,78%)  !important; }
+  html.light .border-orange-800\/30       { border-color: hsl(25,50%,78%)   !important; }
+  html.light .border-lime-800\/30         { border-color: hsl(82,40%,76%)   !important; }
+  html.light .border-purple-800\/30       { border-color: hsl(270,40%,78%)  !important; }
+  html.light .border-yellow-800\/30       { border-color: hsl(45,40%,76%)   !important; }
+  html.light .border-blue-800\/30         { border-color: hsl(200,40%,76%)  !important; }
   html.light .bg-white\/\[0\.03\]  { background-color: white !important; }
   html.light .bg-white\/\[0\.04\]  { background-color: hsl(220,15%,97%) !important; }
   html.light .bg-white\/\[0\.06\]  { background-color: hsl(220,15%,96%) !important; }

@@ -44,15 +44,27 @@ That is the product story: EasyFlow makes complex operations easier to understan
 
 ## Overview
 
-EasyFlow is built to be the standard open source product for operational workflow automation in supply chain and logistics. It is not an ERP system — it is the workflow layer that sits above ERPs, WMS, procurement engines, and supplier networks.
+EasyFlow is an open-source operational visibility layer for supply chain teams. It is not an ERP replacement. It sits above ERP, WMS, procurement, warehouse, and supplier systems and turns scattered operational signals into one usable workspace for action, follow-up, and decision support.
 
-Key capabilities today:
+Current platform highlights:
 
-- Tenant-isolated workflow runtime
-- Workflow graph modeling and execution simulation
-- RabbitMQ-based event handling and worker processing
-- Notification publishing and connector-ready integration scaffolding
-- Next.js admin dashboard for tenant and integration settings
+- Multi-tenant workspaces with tenant-isolated dashboards, workflow views, and operational modules
+- A visual process canvas for modeling approvals, handoffs, and escalation paths
+- Tenant-scoped automation and event monitoring through webhook- and n8n-friendly integration patterns
+- A local operational event feed for exercising automation flows during development and demos
+- FlowGuide, a self-hosted AI assistant built with LangChain, MCP, and Ollama-ready local model support
+- Next.js product UI, FastAPI integration backend, RabbitMQ event path, and Postgres-backed data models
+
+---
+
+## Deployment Paths
+
+EasyFlow currently supports two practical deployment paths:
+
+- Full self-hosted stack with Docker Compose and an Oracle Always Free VM:
+  - [DEPLOY_ORACLE_FREE.md](DEPLOY_ORACLE_FREE.md)
+- Frontend-first demo deployment with Vercel and Neon:
+  - [VERCEL_NEON_DEMO.md](VERCEL_NEON_DEMO.md)
 
 ---
 
@@ -291,11 +303,13 @@ The product ambition is to become the easier, smarter, more actionable layer tha
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 14, React, Tailwind CSS |
-| API | FastAPI, Pydantic, SQLAlchemy, Alembic |
-| Worker | Python async worker, `aio-pika`, Prometheus metrics |
-| Database | PostgreSQL / SQLite tenant DBs |
-| Messaging | RabbitMQ |
+| Product UI | Next.js 14, React, TypeScript, Tailwind CSS, Recharts |
+| Integration API | FastAPI, Python |
+| Data Modeling | Prisma, Zod |
+| Database | PostgreSQL, Neon-compatible Postgres |
+| Eventing | RabbitMQ |
+| Automation / Integration | n8n, webhook ingestion, connector factory |
+| AI Assistant | LangChain, MCP, Ollama, Llama 3.1, local embeddings |
 | Workflow Engine | `packages/engine` Python package |
 | Connectors | `packages/connectors` pluggable adapter SDK |
 
@@ -305,13 +319,15 @@ The product ambition is to become the easier, smarter, more actionable layer tha
 
 ```text
 /apps
-  api/          FastAPI backend, migrations, worker, and service API
-  web/          Next.js admin dashboard and tenant UX
+  api/          FastAPI backend, webhook ingestion, and service API
+  web/          Next.js product UI, docs, dashboards, tenant modules, and copilot
 /packages
   engine/       reusable Python workflow engine core
-  connectors/   connector factory, HTTP adapter, and plugin support
+  connectors/   connector factory, webhook adapter, and integration support
 /examples
-  procurement_workflow.json  sample workflow definition
+  n8n-workflows/  example ERP and operational event workflows
+/scripts
+  oracle/       Oracle bootstrap and deployment helpers
 /tests
   test_access_control.py
   test_workflow_engine.py
@@ -413,10 +429,11 @@ cd apps/web
 npm install
 ```
 
-Run RabbitMQ locally:
+Return to the repo root and start the local infrastructure:
 
 ```bash
-docker compose up -d rabbitmq
+cd /Users/vamsikrishna/Documents/EasyFlow
+docker compose up -d postgres rabbitmq n8n
 ```
 
 Start the API:
@@ -426,13 +443,6 @@ cd /Users/vamsikrishna/Documents/EasyFlow
 PYTHONPATH=. uvicorn apps.api.app.main:app --reload
 ```
 
-Start the worker process:
-
-```bash
-source .venv/bin/activate
-PYTHONPATH=. python -m apps.api.app.worker
-```
-
 Start the web frontend:
 
 ```bash
@@ -440,7 +450,18 @@ cd apps/web
 npm run dev
 ```
 
-Visit the app at `http://localhost:3000`.
+Optional for the local AI assistant:
+
+```bash
+ollama pull llama3.1:8b
+ollama pull nomic-embed-text
+```
+
+Visit:
+
+- Web app: `http://localhost:3000`
+- API: `http://localhost:8000`
+- n8n: `http://localhost:5678`
 
 ---
 

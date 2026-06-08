@@ -1,7 +1,20 @@
 "use client";
 
-import { Boxes, LayoutDashboard, TrendingUp, Waypoints, X, Zap } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import {
+  BarChart3,
+  Boxes,
+  LayoutDashboard,
+  Package,
+  Route,
+  ShieldCheck,
+  TrendingUp,
+  Truck,
+  Users,
+  Waypoints,
+  X,
+  Zap,
+} from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
@@ -11,6 +24,20 @@ const navItems = [
   { href: "/workflows", label: "Business Processes", icon: Waypoints },
   { href: "/forecasting", label: "Forecasting", icon: TrendingUp },
   { href: "/settings", label: "Integrations", icon: Zap },
+];
+
+const adminItems = [
+  { href: "/admin", label: "Admin Portal", icon: ShieldCheck },
+];
+
+const tenantItems = [
+  { href: "", label: "Overview", icon: Boxes },
+  { href: "inventory", label: "Inventory", icon: Package },
+  { href: "logistics", label: "Logistics", icon: Truck },
+  { href: "suppliers", label: "Suppliers", icon: BarChart3 },
+  { href: "users", label: "Users", icon: Users },
+  { href: "automation", label: "Automation & Integration", icon: Zap },
+  { href: "logistic-management", label: "Logistic Management", icon: Route },
 ];
 
 type SidebarProps = {
@@ -26,8 +53,13 @@ export function Sidebar({
   mobileOpen = false,
   onClose,
 }: SidebarProps) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const tenantQuery = searchParams?.get("tenant");
+  const tenantMatch = pathname.match(/^\/globe\/tenant\/([^/]+)/);
+  const tenantSlug = tenantMatch?.[1] ?? (tenantQuery ? tenantQuery.toLowerCase().replace(/\s+/g, "-") : null);
+  const tenantBaseHref = tenantSlug ? `/globe/tenant/${tenantSlug}` : null;
+
   return (
     <>
       <div
@@ -106,6 +138,73 @@ export function Sidebar({
             );
           })}
         </nav>
+
+        {tenantBaseHref && (
+          <div className={cn("mt-4 pt-4 border-t border-white/10", collapsed && "md:mt-2 md:pt-2")}>
+            {!collapsed && (
+              <div className="mb-2 px-4 text-[0.62rem] uppercase tracking-[0.32em] text-white/25 hidden md:block">
+                Tenant Modules
+              </div>
+            )}
+            <nav className="grid gap-1.5">
+              {tenantItems.map((item) => {
+                const href = item.href ? `${tenantBaseHref}/${item.href}` : tenantBaseHref;
+                const isActive = pathname === href;
+                return (
+                  <a
+                    key={href}
+                    href={href}
+                    title={item.label}
+                    className={cn(
+                      "flex items-center rounded-2xl border text-sm font-medium transition-colors",
+                      collapsed
+                        ? "md:justify-center md:px-0 md:py-3 gap-3 px-4 py-3"
+                        : "gap-3 px-4 py-3",
+                      isActive
+                        ? "border-white/10 bg-white/10 text-foreground"
+                        : "border-transparent text-muted-foreground hover:border-white/10 hover:bg-white/5 hover:text-foreground"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    <span className={cn(collapsed && "md:hidden")}>{item.label}</span>
+                  </a>
+                );
+              })}
+            </nav>
+          </div>
+        )}
+
+        <div className={cn("mt-4 pt-4 border-t border-white/10", collapsed && "md:border-t-0 md:mt-2 md:pt-2")}>
+          {!collapsed && (
+            <div className="mb-2 px-4 text-[0.62rem] uppercase tracking-[0.32em] text-white/25 hidden md:block">
+              Admin
+            </div>
+          )}
+          <nav className="grid gap-1.5">
+            {adminItems.map((item) => {
+              const isActive = activeHref === item.href;
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  title={item.label}
+                  className={cn(
+                    "flex items-center rounded-2xl border text-sm font-medium transition-colors",
+                    collapsed
+                      ? "md:justify-center md:px-0 md:py-3 gap-3 px-4 py-3"
+                      : "gap-3 px-4 py-3",
+                    isActive
+                      ? "border-purple-500/20 bg-purple-500/10 text-purple-300"
+                      : "border-transparent text-purple-400/60 hover:border-purple-500/15 hover:bg-purple-500/5 hover:text-purple-300"
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span className={cn(collapsed && "md:hidden")}>{item.label}</span>
+                </a>
+              );
+            })}
+          </nav>
+        </div>
 
       </aside>
     </>

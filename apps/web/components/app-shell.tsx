@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { Navbar } from "@/components/navbar";
@@ -20,12 +20,14 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
   return (
     <main className="min-h-screen bg-transparent">
       <div className="md:flex">
-        <Sidebar
-          activeHref={pathname}
-          collapsed={sidebarCollapsed}
-          mobileOpen={mobileOpen}
-          onClose={() => setMobileOpen(false)}
-        />
+        <Suspense fallback={null}>
+          <Sidebar
+            activeHref={pathname}
+            collapsed={sidebarCollapsed}
+            mobileOpen={mobileOpen}
+            onClose={() => setMobileOpen(false)}
+          />
+        </Suspense>
         <div className="min-w-0 flex-1 md:pl-0">
           <Navbar
             title={title}

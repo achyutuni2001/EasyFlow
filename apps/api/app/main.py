@@ -12,6 +12,7 @@ from .messaging import RabbitMQEventPublisher, messaging_summary
 from .notifications import NotificationService
 from .store import store
 from . import connectors as connectors_module
+from . import webhooks as webhooks_module
 
 settings = get_settings()
 
@@ -25,6 +26,9 @@ app = FastAPI(
 
 # include connectors router
 app.include_router(connectors_module.router)
+
+# include inbound webhook router (receives events from ERPs and n8n)
+app.include_router(webhooks_module.router)
 
 
 class CreateTenantRequest(BaseModel):

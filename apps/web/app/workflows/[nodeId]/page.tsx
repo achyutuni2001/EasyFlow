@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { AppShell } from "../../../components/app-shell";
 import { NodeDetail } from "../../../components/node-detail";
 import { STORAGE_KEY, initialProcesses } from "../../../components/process-builder";
@@ -22,7 +22,9 @@ function getAllProcesses(): TenantProcess[] {
 
 export default function NodeDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const nodeId = Array.isArray(params.nodeId) ? params.nodeId[0] : params.nodeId;
+  const returnTo = searchParams?.get("returnTo") || "/workflows";
 
   const [processes, setProcesses] = useState<TenantProcess[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -62,7 +64,7 @@ export default function NodeDetailPage() {
           <div className="text-sm text-muted-foreground">
             Node <code className="rounded bg-white/5 px-2 py-0.5">{nodeId}</code> was not found.
           </div>
-          <a href="/workflows" className="text-sm text-secondary hover:underline">← Back to Canvas</a>
+          <a href={returnTo} className="text-sm text-secondary hover:underline">← Back</a>
         </div>
       </AppShell>
     );
@@ -76,6 +78,9 @@ export default function NodeDetailPage() {
       title={foundNode.label}
       subtitle={`${foundProcess.tenantName} · ${foundProcess.processName}`}
     >
+      <div className="mb-4">
+        <a href={returnTo} className="text-sm text-secondary hover:underline">← Back</a>
+      </div>
       <NodeDetail
         node={foundNode}
         process={foundProcess}
