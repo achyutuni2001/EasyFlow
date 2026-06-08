@@ -8,7 +8,6 @@ import {
   Bell,
   Globe,
   LayoutDashboard,
-  Link2,
   Menu,
   Moon,
   Package,
@@ -18,21 +17,23 @@ import {
   TrendingUp,
   Truck,
   Users,
+  Workflow,
   X,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
+import { TenantCopilot } from "@/components/tenant-copilot";
 
 const tenantModules = [
-  { href: "",                     label: "Dashboard",           icon: LayoutDashboard },
-  { href: "/inventory",           label: "Inventory",           icon: Package },
-  { href: "/logistics",           label: "Logistics",           icon: Truck },
-  { href: "/suppliers",           label: "Suppliers",           icon: BarChart3 },
-  { href: "/users",               label: "Users",               icon: Users },
-  { href: "/automation",          label: "Automation",         icon: Zap },
-  { href: "/integration",         label: "Integration",        icon: Link2 },
-  { href: "/logistic-management", label: "Logistic Management", icon: Route },
+  { href: "",                     label: "Dashboard",                 icon: LayoutDashboard },
+  { href: "/canvas",              label: "Canvas",                    icon: Workflow },
+  { href: "/inventory",           label: "Inventory",                 icon: Package },
+  { href: "/logistics",           label: "Logistics",                 icon: Truck },
+  { href: "/suppliers",           label: "Suppliers",                 icon: BarChart3 },
+  { href: "/users",               label: "Users",                     icon: Users },
+  { href: "/automation",          label: "Automation & Integration",  icon: Zap },
+  { href: "/logistic-management", label: "Logistic Management",       icon: Route },
 ];
 
 const globalLinks = [
@@ -50,6 +51,7 @@ export default function TenantLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const { theme, toggle } = useTheme();
   const base = `/globe/tenant/${params.tenant}`;
+  const tenantName = decodeURIComponent(params.tenant).replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
   return (
     <div className="min-h-screen bg-[hsl(214,55%,5%)]" style={{
@@ -191,6 +193,7 @@ export default function TenantLayout({
           </main>
         </div>
       </div>
+      <TenantCopilot tenantSlug={params.tenant} tenantName={tenantName} />
     </div>
   );
 }

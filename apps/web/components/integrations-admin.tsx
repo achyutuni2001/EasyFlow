@@ -1,257 +1,374 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, CheckCircle2, Plus, RefreshCcw, Zap, X } from "lucide-react";
+import { Copy, CheckCircle2, RefreshCcw, Zap, ExternalLink, Workflow, Webhook, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  createTenantConnector,
-  getConnectorCatalog,
-  getTenantConnectors,
-  testTenantConnector,
-  updateTenantConnector,
-} from "@/lib/connectors";
-import type { ConnectorCatalogItem, TenantConnectorItem } from "@/lib/connectors";
+import { getTenantConnectors } from "@/lib/connectors";
+import type { TenantConnectorItem } from "@/lib/connectors";
+import { cn } from "@/lib/utils";
+
+const ERP_SYSTEMS = [
+  { id: "sap",      label: "SAP S/4HANA",             logo: "SAP",  color: "text-blue-400",   bg: "bg-blue-500/10"   },
+  { id: "oracle",   label: "Oracle ERP Cloud",         logo: "ORC",  color: "text-red-400",    bg: "bg-red-500/10"    },
+  { id: "dynamics", label: "Microsoft Dynamics 365",   logo: "D365", color: "text-sky-400",    bg: "bg-sky-500/10"    },
+  { id: "netsuite", label: "NetSuite",                 logo: "NS",   color: "text-amber-400",  bg: "bg-amber-500/10"  },
+  { id: "infor",    label: "Infor CloudSuite",         logo: "INF",  color: "text-purple-400", bg: "bg-purple-500/10" },
+  { id: "relex",    label: "Relex Solutions",          logo: "RLX",  color: "text-emerald-400",bg: "bg-emerald-500/10"},
+];
+
+const HOW_IT_WORKS_STEPS = [
+  { n: "1", title: "n8n starts", body: "n8n (included in docker-compose) runs on localhost:5678. Open it in your browser." },
+  { n: "2", title: "Import a template", body: "Import one of the n8n workflow templates from examples/n8n-workflows/. Pick your ERP." },
+  { n: "3", title: "Add your ERP credentials", body: "Enter your ERP's URL and API key inside n8n. n8n handles all the authentication." },
+  { n: "4", title: "Set your webhook token", body: "Copy the webhook token from the box below and paste it into the n8n workflow." },
+  { n: "5", title: "Activate the workflow", body: "Click Activate in n8n. It will fetch data from your ERP and push it to EasyFlow automatically." },
+];
+
+const PUBLIC_API_URL =
+  process.env.NEXT_PUBLIC_EASYFLOW_API_URL ?? "http://localhost:8000";
 
 export function IntegrationsAdminPanel() {
-  const [tenantId, setTenantId] = useState("tenant-acme");
-  const [catalog, setCatalog] = useState<ConnectorCatalogItem[]>([]);
+  const [tenantId, setTenantId] = useState("acme-retail");
   const [connectors, setConnectors] = useState<TenantConnectorItem[]>([]);
-  const [selectedType, setSelectedType] = useState("relex");
-  const [baseUrl, setBaseUrl] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [headersJson, setHeadersJson] = useState("{}");
+  const [webhookToken, setWebhookToken] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"setup" | "status" | "raw">("setup");
 
   useEffect(() => {
-    void loadCatalog();
-    void loadTenantConnectors(tenantId);
+    void fetchToken(tenantId);
+    void loadConnectors(tenantId);
   }, []);
 
-  async function loadCatalog() {
+  async function fetchToken(id: string) {
     try {
-      setLoading(true);
-      const data = await getConnectorCatalog();
-      setCatalog(data.connectors ?? []);
-    } catch (err) {
-      setMessage(`Failed to load connector catalog: ${(err as Error).message}`);
-    } finally {
-      setLoading(false);
+      const res = await fetch(`/api/webhooks/token/${id}`, { headers: { "X-Actor-Id": "superadmin-1" } });
+      if (res.ok) {
+        const data = await res.json() as { token: string };
+        setWebhookToken(data.token);
+      }
+    } catch {
+      // API not running in dev — show placeholder
+      setWebhookToken("start-docker-to-see-real-token");
     }
   }
 
-  async function loadTenantConnectors(id: string) {
-    if (!id) return;
+  async function loadConnectors(id: string) {
     try {
       setLoading(true);
       const data = await getTenantConnectors(id);
       setConnectors(data.items ?? []);
       setMessage(null);
-    } catch (err) {
-      setMessage(`Unable to load settings for tenant '${id}': ${(err as Error).message}`);
+    } catch {
       setConnectors([]);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleCreate() {
-    try {
-      setLoading(true);
-      const headers = JSON.parse(headersJson || "{}") as Record<string, unknown>;
-      await createTenantConnector(tenantId, {
-        connector_type: selectedType,
-        config: { base_url: baseUrl, api_key: apiKey, headers },
-      });
-      setMessage("Connector added successfully.");
-      setBaseUrl("");
-      setApiKey("");
-      setHeadersJson("{}");
-      void loadTenantConnectors(tenantId);
-    } catch (err) {
-      setMessage(`Create failed: ${(err as Error).message}`);
-    } finally {
-      setLoading(false);
-    }
+  function copyToClipboard(text: string, key: string) {
+    void navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 2000);
   }
 
-  async function handleTest(connectorId: number) {
-    try {
-      setLoading(true);
-      const result = await testTenantConnector(tenantId, connectorId);
-      setMessage(result.success ? "Connection test passed." : `Test failed: ${JSON.stringify(result.result)}`);
-    } catch (err) {
-      setMessage(`Connector test failed: ${(err as Error).message}`);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const webhookUrl = `${PUBLIC_API_URL}/api/webhooks/inbound/${tenantId}`;
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-[28px] border border-white/10 bg-slate-950/80 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-6">
+
+      {/* ── Header ─────────────────────────────────────────────────────── */}
+      <div className="rounded-[28px] border border-white/10 bg-slate-950/80 p-6 backdrop-blur-xl">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.35em] text-secondary">
+            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.32em] text-[hsl(184,73%,61%)]">
               <Zap className="h-4 w-4" />
-              System Integrations
+              ERP Integrations
             </div>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">Tenant Connector Settings</h1>
-            <p className="max-w-2xl text-sm leading-6 text-white/60">
-              Configure ERP and system connections for a tenant. Add, test, and review connector settings in one place.
+            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+              Connect your ERP — free, no code
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/50">
+              EasyFlow uses <strong className="text-white/70">n8n</strong> (open-source, runs in your docker-compose)
+              to connect SAP, Oracle, Dynamics, NetSuite and more.
+              n8n fetches data from your ERP and pushes it to EasyFlow via a secure webhook.
+              No paid services. No API contracts. No custom connector code.
             </p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-[auto_auto]">
+          <div className="flex shrink-0 items-center gap-2">
             <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.25em] text-white/40">Tenant ID</label>
+              <label className="text-[0.68rem] uppercase tracking-[0.24em] text-white/35">Tenant</label>
               <input
                 value={tenantId}
-                onChange={(event) => setTenantId(event.target.value)}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-secondary/50"
+                onChange={(e) => setTenantId(e.target.value)}
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none focus:border-[hsl(184,73%,61%)]/50"
               />
             </div>
-            <Button variant="outline" onClick={() => void loadTenantConnectors(tenantId)}>
-              Load Settings
+            <Button variant="outline" className="self-end" onClick={() => { void fetchToken(tenantId); void loadConnectors(tenantId); }}>
+              <RefreshCcw className="mr-2 h-4 w-4" /> Load
             </Button>
           </div>
         </div>
       </div>
 
-      {message ? (
-        <div className="rounded-3xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-white/80">
-          {message}
-        </div>
-      ) : null}
+      {/* ── Tabs ───────────────────────────────────────────────────────── */}
+      <div className="flex gap-1 rounded-[20px] border border-white/10 bg-white/3 p-1.5">
+        {([
+          { id: "setup",  label: "Setup Guide",        icon: Workflow },
+          { id: "status", label: "Connection Status",  icon: CheckCircle2 },
+          { id: "raw",    label: "Raw Connectors",     icon: Zap },
+        ] as const).map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition-colors",
+              activeTab === tab.id ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
+            )}
+          >
+            <tab.icon className="h-4 w-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      <div className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        <section className="rounded-[28px] border border-white/10 bg-slate-950/80 p-6">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-semibold text-white">Add Connector</h2>
-              <p className="mt-1 text-sm text-white/50">Choose a connector type and register a new tenant integration.</p>
+      {/* ── Setup Guide tab ─────────────────────────────────────────────── */}
+      {activeTab === "setup" && (
+        <div className="space-y-5">
+
+          {/* Architecture diagram */}
+          <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+            <div className="mb-4 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+              How data flows
             </div>
-            <div className="rounded-3xl bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.3em] text-white/50">{loading ? "Working…" : "Ready"}</div>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              {["Your ERP (SAP / Oracle / Dynamics)", "→", "n8n (localhost:5678)", "→", "EasyFlow webhook", "→", "Workflow engine"].map((item, i) => (
+                item === "→"
+                  ? <span key={i} className="text-white/20 text-lg">→</span>
+                  : <span key={i} className={cn(
+                      "rounded-full border px-3 py-1.5 text-[0.78rem] font-medium",
+                      i === 0 ? "border-white/10 text-white/60" :
+                      i === 4 ? "border-[hsl(184,73%,61%)]/30 bg-[hsl(184,73%,61%)]/10 text-[hsl(184,73%,61%)]" :
+                      i === 2 ? "border-[hsl(82,78%,71%)]/30 bg-[hsl(82,78%,71%)]/10 text-[hsl(82,78%,71%)]" :
+                      "border-white/10 text-white/50"
+                    )}>
+                      {item}
+                    </span>
+              ))}
+            </div>
           </div>
 
-          <div className="grid gap-4">
-            <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.25em] text-white/40">Connector Type</label>
-              <select
-                value={selectedType}
-                onChange={(event) => setSelectedType(event.target.value)}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-secondary/50"
-              >
-                {catalog.map((item) => (
-                  <option key={item.type} value={item.type}>{item.label}</option>
-                ))}
-              </select>
+          {/* Steps */}
+          <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+            <div className="mb-5 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+              5 steps to connect your ERP
             </div>
-            <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.25em] text-white/40">Base URL</label>
-              <input
-                value={baseUrl}
-                onChange={(event) => setBaseUrl(event.target.value)}
-                placeholder="https://api.example.com"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-secondary/50"
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.25em] text-white/40">API Key / Token</label>
-              <input
-                value={apiKey}
-                onChange={(event) => setApiKey(event.target.value)}
-                placeholder="Optional for this connector"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-secondary/50"
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.25em] text-white/40">Additional Headers (JSON)</label>
-              <textarea
-                value={headersJson}
-                onChange={(event) => setHeadersJson(event.target.value)}
-                rows={4}
-                className="min-h-[110px] rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-secondary/50"
-              />
-            </div>
-            <Button onClick={handleCreate} disabled={!tenantId || !selectedType || !baseUrl || loading}>
-              <Plus className="mr-2 h-4 w-4" /> Add Connector
-            </Button>
-          </div>
-        </section>
-
-        <section className="rounded-[28px] border border-white/10 bg-slate-950/80 p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-semibold text-white">Configured Connections</h2>
-              <p className="mt-1 text-sm text-white/50">Review all connector settings for the selected tenant.</p>
-            </div>
-            <Button variant="outline" onClick={() => void loadTenantConnectors(tenantId)}>
-              <RefreshCcw className="mr-2 h-4 w-4" /> Refresh
-            </Button>
-          </div>
-
-          <div className="mt-6 space-y-3">
-            {connectors.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-6 text-sm text-white/60">
-                No connector settings found for this tenant.
-              </div>
-            ) : (
-              connectors.map((connector) => (
-                <div key={connector.id} className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <div className="text-sm font-semibold text-white">{connector.connector_type}</div>
-                      <div className="text-xs text-white/50">Created by {connector.created_by}</div>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-[0.26em] text-white/60">
-                      <span className="inline-flex rounded-full bg-emerald-500/20 px-2.5 py-1 text-emerald-200">Active</span>
-                    </div>
+            <div className="space-y-4">
+              {HOW_IT_WORKS_STEPS.map((step) => (
+                <div key={step.n} className="flex gap-4">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[hsl(184,73%,61%)]/30 bg-[hsl(184,73%,61%)]/10 text-xs font-bold text-[hsl(184,73%,61%)]">
+                    {step.n}
                   </div>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    <div className="rounded-3xl bg-slate-950/60 p-3">
-                      <div className="text-[11px] uppercase tracking-[0.26em] text-white/40">Base URL</div>
-                      <div className="mt-1 text-sm text-white/80">{String(connector.config.base_url ?? "–")}</div>
-                    </div>
-                    <div className="rounded-3xl bg-slate-950/60 p-3">
-                      <div className="text-[11px] uppercase tracking-[0.26em] text-white/40">Secret Key</div>
-                      <div className="mt-1 text-sm text-white/80">{connector.config.api_key ? "••••••••" : "None"}</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => void handleTest(connector.id)}>
-                      <CheckCircle2 className="mr-2 h-4 w-4" /> Test Connection
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-white/70 hover:bg-white/10">
-                      View Details
-                    </Button>
+                  <div>
+                    <div className="text-sm font-semibold text-white">{step.title}</div>
+                    <p className="mt-0.5 text-[0.82rem] leading-6 text-white/45">{step.body}</p>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </section>
-      </div>
-
-      <section className="rounded-[28px] border border-white/10 bg-slate-950/80 p-6">
-        <div className="flex items-center gap-3 text-xs uppercase tracking-[0.32em] text-secondary">
-          <ArrowRight className="h-4 w-4" />
-          Integration settings
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {catalog.map((item) => (
-            <div key={item.type} className="rounded-3xl border border-white/10 bg-white/5 p-4">
-              <div className="text-sm font-semibold text-white">{item.label}</div>
-              <p className="mt-2 text-sm leading-6 text-white/60">{item.description}</p>
-              <div className="mt-3 text-[11px] uppercase tracking-[0.3em] text-white/40">Fields</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {item.fields.map((field) => (
-                  <span key={field} className="rounded-full bg-white/5 px-3 py-1 text-xs text-white/60">{field}</span>
-                ))}
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Webhook credentials */}
+          <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+            <div className="mb-5 flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+              <Webhook className="h-3.5 w-3.5" />
+              Your webhook credentials
+            </div>
+            <div className="space-y-3">
+              <CredentialRow
+                label="Webhook URL"
+                value={webhookUrl}
+                onCopy={() => copyToClipboard(webhookUrl, "url")}
+                copied={copied === "url"}
+              />
+              <CredentialRow
+                label="X-Webhook-Token header"
+                value={webhookToken ?? "Loading…"}
+                onCopy={() => webhookToken && copyToClipboard(webhookToken, "token")}
+                copied={copied === "token"}
+                mono
+              />
+              <CredentialRow
+                label="X-Source header"
+                value="sap  |  oracle  |  dynamics  |  netsuite  |  n8n"
+                mono
+              />
+            </div>
+            <div className="mt-4 rounded-2xl border border-[hsl(184,73%,61%)]/15 bg-[hsl(184,73%,61%)]/8 px-4 py-3 text-[0.8rem] leading-6 text-[hsl(184,73%,61%)]">
+              <Info className="mb-0.5 mr-1.5 inline h-3.5 w-3.5" />
+              Paste these into the n8n workflow template. You'll find the templates in
+              <code className="mx-1 rounded bg-white/8 px-1.5 py-0.5 text-[0.75rem]">examples/n8n-workflows/</code>
+              — one file per ERP.
+            </div>
+          </div>
+
+          {/* ERP grid */}
+          <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+            <div className="mb-5 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+              Supported ERP systems
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {ERP_SYSTEMS.map((erp) => (
+                <div key={erp.id} className="rounded-2xl border border-white/8 bg-white/3 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[0.65rem] font-bold", erp.color, erp.bg)}>
+                      {erp.logo}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-white">{erp.label}</div>
+                      <div className="text-[0.7rem] text-white/35">via n8n template</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 rounded-xl bg-white/3 px-3 py-2 font-mono text-[0.68rem] text-white/40">
+                    X-Source: {erp.id}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* n8n link */}
+          <div className="flex items-center gap-3">
+            <a
+              href="http://localhost:5678"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full bg-[hsl(82,78%,71%)] px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:brightness-105"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open n8n at localhost:5678
+            </a>
+            <a
+              href="/docs/connect-erp"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/60 transition hover:border-white/20 hover:text-white"
+            >
+              Read the full guide →
+            </a>
+          </div>
         </div>
-      </section>
+      )}
+
+      {/* ── Connection Status tab ────────────────────────────────────────── */}
+      {activeTab === "status" && (
+        <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+          <div className="mb-4 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+            Active connections for {tenantId}
+          </div>
+          {connectors.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-white/3 px-6 py-10 text-center">
+              <Webhook className="mx-auto mb-3 h-8 w-8 text-white/20" />
+              <p className="text-sm text-white/40">No connectors configured yet.</p>
+              <p className="mt-1 text-xs text-white/25">Set up n8n using the Setup Guide tab and events will appear here.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {connectors.map((c) => (
+                <div key={c.id} className="rounded-2xl border border-white/8 bg-white/3 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-semibold capitalize text-white">{c.connector_type}</div>
+                      <div className="text-[0.72rem] text-white/35">Created by {c.created_by}</div>
+                    </div>
+                    <span className="rounded-full border border-emerald-500/25 bg-emerald-500/12 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                      Active
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Raw Connectors tab ───────────────────────────────────────────── */}
+      {activeTab === "raw" && (
+        <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+          <div className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+            Direct webhook endpoint
+          </div>
+          <p className="mb-5 text-[0.82rem] leading-6 text-white/45">
+            You can also POST directly to the webhook endpoint from your own scripts, cron jobs, or any tool that can make HTTP requests — no n8n required.
+          </p>
+          <pre className="overflow-x-auto rounded-2xl border border-white/8 bg-[hsl(214,55%,3%)] px-5 py-4 text-[0.78rem] leading-6 text-[hsl(184,73%,61%)]">
+{`curl -X POST \\
+  ${webhookUrl} \\
+  -H "Content-Type: application/json" \\
+  -H "X-Source: sap" \\
+  -H "X-Webhook-Token: ${webhookToken ?? '<your-token>'}" \\
+  -d '{
+    "event_type": "purchase_order_created",
+    "source": "sap",
+    "data": {
+      "purchase_order_id": "PO-4901",
+      "supplier_name": "Supplier Alpha",
+      "quantity": 500,
+      "status": "pending"
+    }
+  }'`}
+          </pre>
+          <div className="mt-4 rounded-2xl border border-white/8 bg-white/3 p-4">
+            <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/30">Supported event_type values</div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "purchase_order_created","purchase_order_approved","stock_updated",
+                "stock_low_alert","shipment_dispatched","shipment_delivered",
+                "supplier_confirmed","workflow_trigger","custom_event"
+              ].map((e) => (
+                <span key={e} className="rounded-full bg-white/5 px-2.5 py-1 font-mono text-[0.68rem] text-white/45">{e}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {message && (
+        <div className="rounded-2xl border border-[hsl(184,73%,61%)]/20 bg-[hsl(184,73%,61%)]/10 px-4 py-3 text-sm text-white/70">
+          {message}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Helper components ────────────────────────────────────────────────────────
+
+function CredentialRow({
+  label, value, onCopy, copied, mono = false,
+}: {
+  label: string; value: string; onCopy?: () => void; copied?: boolean; mono?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/3 px-4 py-3">
+      <div className="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.26em] text-white/30">{label}</div>
+      <div className="flex items-center justify-between gap-3">
+        <code className={cn("flex-1 truncate text-[0.78rem] text-white/70", mono && "font-mono")}>
+          {value}
+        </code>
+        {onCopy && (
+          <button
+            type="button"
+            onClick={onCopy}
+            className="shrink-0 text-white/30 transition hover:text-[hsl(184,73%,61%)]"
+            title="Copy"
+          >
+            {copied
+              ? <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              : <Copy className="h-4 w-4" />}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

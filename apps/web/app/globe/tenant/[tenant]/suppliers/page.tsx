@@ -1,15 +1,15 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import { useEffect, useState } from "react";
 import { BarChart3, Globe2, Star, TrendingUp } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { tenantSeeds } from "@/lib/tenant-seeds";
-import { generateSuppliersData } from "@/lib/tenant-utils";
 
-function slugify(n: string) { return n.toLowerCase().replace(/\s+/g, "-"); }
+type Supplier = { name: string; category: string; country: string; fillRate: string; leadTime: string; qualityScore: string; spendMTD: string; riskLevel: string; since: string };
+type TrendPoint = { month: string; fillRate: number; leadTime: number };
+type Data = { suppliers: Supplier[]; performanceTrend: TrendPoint[] };
 
 const TT = {
   contentStyle: { background: "hsl(217,45%,8%)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontSize: 12 },
@@ -25,16 +25,32 @@ const riskStyle: Record<string, string> = {
 };
 
 export default function SuppliersPage({ params }: { params: { tenant: string } }) {
-  const tenant = tenantSeeds.find((t) => slugify(t.name) === params.tenant);
-  if (!tenant) return notFound();
-  const { suppliers, performanceTrend } = generateSuppliersData(tenant.name);
+  const [data, setData] = useState<Data | null>(null);
+  const [tenantName, setTenantName] = useState("");
 
+  useEffect(() => {
+    fetch(`/api/tenant/${params.tenant}/suppliers`)
+      .then((r) => r.json())
+      .then((d) => { if (d?.suppliers) setData(d); })
+      .catch(() => {});
+    setTenantName(params.tenant.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
+  }, [params.tenant]);
+
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white/40 text-sm">Loading supplier data…</div>
+      </div>
+    );
+  }
+
+  const { suppliers, performanceTrend } = data;
   const avgFillRate = (suppliers.reduce((a, s) => a + parseFloat(s.fillRate), 0) / suppliers.length).toFixed(1);
   const avgLeadTime = (suppliers.reduce((a, s) => a + parseFloat(s.leadTime), 0) / suppliers.length).toFixed(1);
-  const atRisk = suppliers.filter(s => ["High","Critical"].includes(s.riskLevel)).length;
+  const atRisk = suppliers.filter((s) => ["High","Critical"].includes(s.riskLevel)).length;
 
-  const supplierBarData = suppliers.map(s => ({
-    name:     s.name.replace("Supplier ", ""),
+  const supplierBarData = suppliers.map((s) => ({
+    name: s.name.split(" ").slice(0, 2).join(" "),
     fillRate: parseFloat(s.fillRate),
     leadTime: parseFloat(s.leadTime),
   }));
@@ -45,7 +61,7 @@ export default function SuppliersPage({ params }: { params: { tenant: string } }
         <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(82,78%,71%)]">
           <BarChart3 className="h-3.5 w-3.5" /> Suppliers
         </div>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenant.name} — Suppliers</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenantName} — Suppliers</h1>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
