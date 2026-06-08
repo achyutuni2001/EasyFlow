@@ -591,19 +591,28 @@ Postgres                    internal Docker network` },
   "ai-copilot": {
     section: "Architecture",
     title: "AI Copilot",
-    description: "How the tenant-safe assistant uses LangChain, MCP, and tenant-scoped retrieval on self-hosted infrastructure.",
+    description: "How the tenant-safe assistant uses agentic retrieval, tenant-scoped context, and swappable LLM backends.",
     toc: [
       { label: "What it is", anchor: "what-it-is", level: 2 },
+      { label: "Agentic architecture", anchor: "agentic", level: 2 },
       { label: "Tenant-safe retrieval", anchor: "retrieval", level: 2 },
       { label: "Current data sources", anchor: "sources", level: 2 },
-      { label: "Local LLM integration", anchor: "llm", level: 2 },
+      { label: "LLM backends", anchor: "llm", level: 2 },
       { label: "Environment variables", anchor: "env", level: 2 },
       { label: "Current limitations", anchor: "limits", level: 2 },
     ],
     blocks: [
       { type: "h2", id: "what-it-is", text: "What it is" },
       { type: "p", text: "EasyFlow's copilot is a tenant-scoped retrieval assistant for supply chain operations. It is designed to answer questions about shipments, inventory, approvals, suppliers, and workflow exceptions using only the current tenant's operational context." },
-      { type: "callout", variant: "tip", text: "The current implementation uses LangChain for orchestration and a local MCP tool layer for tenant-safe context access. It is designed to run without paid AI APIs and can be pointed at a self-hosted Llama-class model through Ollama or a compatible local backend." },
+      { type: "callout", variant: "tip", text: "The copilot is designed around a provider abstraction. EasyFlow can run in a fully local agentic mode through Ollama, or use hosted backends such as OpenAI or Gemini while keeping the same tenant-scoped response contract." },
+
+      { type: "h2", id: "agentic", text: "Agentic architecture" },
+      { type: "p", text: "Agentic AI in EasyFlow means the assistant does more than autocomplete a generic answer. It gathers tenant context, inspects operational records, and produces an answer grounded in current business data." },
+      { type: "table", headers: ["Mode", "How it works", "Best fit"], rows: [
+        ["Local agentic mode", "LangChain agent + tenant MCP tools + Ollama model", "Self-hosted demos, on-prem deployments, strict data residency"],
+        ["Hosted grounded mode", "OpenAI or Gemini provider + tenant-scoped document context", "Teams that want managed models without rewriting the app"],
+        ["Heuristic fallback", "Deterministic local logic over the same tenant dataset", "Safe demo fallback when no model backend is available"],
+      ]},
 
       { type: "h2", id: "retrieval", text: "Tenant-safe retrieval" },
       { type: "list", items: [
@@ -626,36 +635,44 @@ Postgres                    internal Docker network` },
         ["Tenant KPIs", "Overview, exception, and operational health questions"],
       ]},
 
-      { type: "h2", id: "llm", text: "Local LLM integration" },
-      { type: "p", text: "The copilot now uses LangChain as the orchestration layer. LangChain loads MCP tools that expose only tenant-safe operational data, then a local chat model turns those grounded tool results into a final answer." },
+      { type: "h2", id: "llm", text: "LLM backends" },
+      { type: "p", text: "EasyFlow now supports multiple backend styles through the same provider interface. The local Ollama path is the most agentic because it can reason through tenant MCP tools directly. Hosted OpenAI and Gemini paths use the same tenant-scoped knowledge documents and return the same structured assistant payload." },
       { type: "code", lang: "text", code: `User question
    ↓
 Tenant-aware API route
    ↓
 Tenant-scoped knowledge documents
    ↓
-In-process MCP server with tenant-only tools
+Provider registry
    ↓
-LangChain agent
+Ollama: LangChain + MCP tools
+OpenAI / Gemini: grounded context prompt
    ↓
 Grounded answer + citations` },
-      { type: "p", text: "The default local LLM path currently uses ChatOllama through LangChain. The easiest setup is to run Ollama on the same machine or on your own internal network, pull a Llama model, and point EasyFlow at it." },
+      { type: "p", text: "The default local path uses ChatOllama through LangChain. The hosted-provider path is designed so teams can point EasyFlow at OpenAI or Gemini later without changing the API contract or UI." },
       { type: "code", lang: "bash", code: `# Example local setup
 ollama serve
 ollama pull llama3.1:8b` },
 
       { type: "h2", id: "env", text: "Environment variables" },
-      { type: "code", lang: "env", code: `LOCAL_LLM_ENABLED=false
+      { type: "code", lang: "env", code: `AI_PROVIDER=heuristic
+LOCAL_LLM_ENABLED=false
 LOCAL_LLM_BASE_URL=http://127.0.0.1:11434
 LOCAL_LLM_MODEL=llama3.1:8b
-LOCAL_EMBEDDING_MODEL=nomic-embed-text` },
-      { type: "p", text: "When LOCAL_LLM_ENABLED is false, the assistant still returns grounded tenant-specific answers using the deterministic local fallback. When it is true, the LangChain + MCP path is used." },
+LOCAL_EMBEDDING_MODEL=nomic-embed-text
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4.1-mini
+OPENAI_BASE_URL=https://api.openai.com/v1/responses
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash` },
+      { type: "p", text: "Set AI_PROVIDER to ollama, openai, gemini, or heuristic. If no provider is configured, EasyFlow falls back to deterministic tenant-grounded logic instead of failing closed." },
 
       { type: "h2", id: "limits", text: "Current limitations" },
       { type: "list", items: [
         "The current retrieval layer is lexical and tenant-scoped, not vector-search based yet.",
         "The MCP tool layer currently exposes local tenant knowledge documents rather than live ERP-backed indexed stores everywhere.",
-        "The LangChain model path is local-first and self-hosted, but production-quality prompt and model tuning still depend on the deployment environment you choose.",
+        "The hosted-provider paths are grounded in tenant documents today, but the deeper agentic tool loop currently exists only in the local Ollama + MCP mode.",
+        "Production-quality prompt and model tuning still depend on the deployment environment you choose.",
       ]},
     ],
   },

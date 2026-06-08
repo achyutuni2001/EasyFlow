@@ -38,6 +38,8 @@ type ProviderOutput = {
 };
 
 type AlertSeverity = AssistantAlertRecord["severity"];
+type StructuredAgentOutput = z.infer<typeof structuredCopilotSchema>;
+type AssistantProviderKey = "heuristic" | "ollama" | "openai" | "gemini";
 
 type AssistantProvider = {
   generate(input: ProviderInput): Promise<ProviderOutput>;
@@ -244,7 +246,7 @@ function heuristicAnswer(input: ProviderInput): ProviderOutput {
   };
 }
 
-function buildSystemPrompt(input: ProviderInput) {
+function buildAgentSystemPrompt(input: ProviderInput) {
   return [
     "You are EasyFlow Copilot, a supply chain operations assistant.",
     "You are running in a strictly tenant-scoped context. Never mention or infer any other tenant.",
@@ -258,10 +260,183 @@ function buildSystemPrompt(input: ProviderInput) {
   ].join("\n");
 }
 
-type StructuredAgentOutput = z.infer<typeof structuredCopilotSchema>;
+function buildContextPrompt(input: ProviderInput) {
+  const relevant = retrieveRelevantDocuments(input.question, input.documents, 8);
+  const context = relevant
+    .map(
+      (document, index) =>
+        `[${index + 1}] ${document.title}\nsourceType=${document.sourceType}\nsourceId=${document.sourceId}\ncontent=${document.content}`
+    )
+    .join("\n\n");
 
-function extractStructuredResponse(value: unknown): StructuredAgentOutput {
-  return structuredCopilotSchema.parse(value);
+  return {
+    relevant,
+    systemPrompt: [
+      "You are EasyFlow Copilot, a supply chain operations assistant.",
+      "You answer using only the current tenant context supplied to you.",
+      "Never invent cross-tenant data, hidden records, or unsupported metrics.",
+      "Return valid JSON only with keys: answer, summary, followUps, alerts, citations.",
+      "Each citation must include sourceType, sourceId, title, and excerpt only if that source appears in the provided context.",
+      "If the provided context is insufficient, say so plainly.",
+    ].join("\n"),
+    userPrompt: [
+      `Tenant: ${input.tenantName} (${input.tenantSlug})`,
+      `Question: ${input.question}`,
+      "",
+      "Relevant tenant context:",
+      context || "No relevant documents found.",
+      "",
+      "Return JSON only.",
+    ].join("\n"),
+  };
+}
+
+function stripMarkdownFence(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("```")) return trimmed;
+  return trimmed
+    .replace(/^```[a-zA-Z0-9_-]*\n?/, "")
+    .replace(/\n?```$/, "")
+    .trim();
+}
+
+function extractJsonPayload(raw: string) {
+  const cleaned = stripMarkdownFence(raw);
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace < firstBrace) {
+    throw new Error("Model response did not contain a JSON object.");
+  }
+  return cleaned.slice(firstBrace, lastBrace + 1);
+}
+
+function parseStructuredResponse(raw: string): StructuredAgentOutput {
+  return structuredCopilotSchema.parse(JSON.parse(extractJsonPayload(raw)));
+}
+
+async function extractOpenAiText(response: Response) {
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload?.error?.message ?? "OpenAI provider request failed.");
+  }
+
+  if (typeof payload.output_text === "string" && payload.output_text.length) {
+    return payload.output_text;
+  }
+
+  const chunks = Array.isArray(payload.output)
+    ? payload.output.flatMap((item: { content?: Array<{ text?: string }> }) =>
+        Array.isArray(item.content) ? item.content.map((part) => part.text).filter(Boolean) : []
+      )
+    : [];
+
+  if (!chunks.length) throw new Error("OpenAI provider returned no text.");
+  return chunks.join("\n");
+}
+
+async function extractGeminiText(response: Response) {
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload?.error?.message ?? "Gemini provider request failed.");
+  }
+
+  const parts = payload?.candidates?.[0]?.content?.parts;
+  const text = Array.isArray(parts)
+    ? parts.map((part: { text?: string }) => part.text).filter(Boolean).join("\n")
+    : "";
+
+  if (!text) throw new Error("Gemini provider returned no text.");
+  return text;
+}
+
+abstract class ContextBackedAssistantProvider implements AssistantProvider {
+  protected abstract providerLabel: string;
+  protected abstract requestText(systemPrompt: string, userPrompt: string): Promise<string>;
+
+  async generate(input: ProviderInput): Promise<ProviderOutput> {
+    const prompt = buildContextPrompt(input);
+    const raw = await this.requestText(prompt.systemPrompt, prompt.userPrompt);
+    const structured = parseStructuredResponse(raw);
+
+    return {
+      provider: this.providerLabel,
+      answer: structured.answer,
+      summary: structured.summary,
+      followUps: structured.followUps,
+      alerts: structured.alerts,
+      citations: normalizeCitations(input.question, input.documents, structured.citations),
+    };
+  }
+}
+
+class OpenAiAssistantProvider extends ContextBackedAssistantProvider {
+  protected providerLabel = `openai:${process.env.OPENAI_MODEL ?? "gpt-4.1-mini"}`;
+
+  protected async requestText(systemPrompt: string, userPrompt: string) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error("OPENAI_API_KEY is not configured.");
+
+    const endpoint = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1/responses";
+    const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        input: [
+          {
+            role: "system",
+            content: [{ type: "input_text", text: systemPrompt }],
+          },
+          {
+            role: "user",
+            content: [{ type: "input_text", text: userPrompt }],
+          },
+        ],
+      }),
+    });
+
+    return extractOpenAiText(response);
+  }
+}
+
+class GeminiAssistantProvider extends ContextBackedAssistantProvider {
+  protected providerLabel = `gemini:${process.env.GEMINI_MODEL ?? "gemini-2.5-flash"}`;
+
+  protected async requestText(systemPrompt: string, userPrompt: string) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_API_KEY is not configured.");
+
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
+          },
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: userPrompt }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.1,
+          },
+        }),
+      }
+    );
+
+    return extractGeminiText(response);
+  }
 }
 
 class LangChainMcpAssistantProvider implements AssistantProvider {
@@ -284,7 +459,7 @@ class LangChainMcpAssistantProvider implements AssistantProvider {
       const agent = createAgent({
         model,
         tools: session.tools,
-        systemPrompt: buildSystemPrompt(input),
+        systemPrompt: buildAgentSystemPrompt(input),
         responseFormat: structuredCopilotSchema,
       });
 
@@ -292,7 +467,7 @@ class LangChainMcpAssistantProvider implements AssistantProvider {
         messages: [{ role: "user", content: input.question }],
       });
 
-      const structured = extractStructuredResponse(
+      const structured = structuredCopilotSchema.parse(
         (result as { structuredResponse?: unknown }).structuredResponse
       );
 
@@ -316,14 +491,29 @@ class HeuristicAssistantProvider implements AssistantProvider {
   }
 }
 
+function resolveProviderKey(): AssistantProviderKey {
+  const explicit = (process.env.AI_PROVIDER ?? "").trim().toLowerCase();
+  if (explicit === "openai" || explicit === "gemini" || explicit === "ollama" || explicit === "heuristic") {
+    return explicit;
+  }
+
+  const localEnabled = (process.env.LOCAL_LLM_ENABLED ?? "").toLowerCase();
+  return localEnabled === "true" ? "ollama" : "heuristic";
+}
+
 export function getFallbackAssistantProvider(): AssistantProvider {
   return new HeuristicAssistantProvider();
 }
 
 export function getAssistantProvider(): AssistantProvider {
-  const enabled = (process.env.LOCAL_LLM_ENABLED ?? "").toLowerCase();
-  if (enabled === "true") {
-    return new LangChainMcpAssistantProvider();
+  switch (resolveProviderKey()) {
+    case "openai":
+      return new OpenAiAssistantProvider();
+    case "gemini":
+      return new GeminiAssistantProvider();
+    case "ollama":
+      return new LangChainMcpAssistantProvider();
+    default:
+      return new HeuristicAssistantProvider();
   }
-  return new HeuristicAssistantProvider();
 }

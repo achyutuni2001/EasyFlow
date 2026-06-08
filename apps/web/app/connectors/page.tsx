@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 
 import { PublicSiteHeader } from "@/components/public-site-header";
 
-type ConnectorCategory = "All" | "ERP" | "Warehouse" | "Planning" | "Infrastructure";
+type ConnectorCategory = "All" | "ERP" | "Warehouse" | "Planning" | "Infrastructure" | "AI";
 
 type ConnectorCard = {
   name: string;
@@ -80,9 +80,30 @@ const connectors: ConnectorCard[] = [
     description: "Use the connector framework for stock movement, wave execution, slotting, and dispatch events from WMS tools.",
     logo: <WarehouseLogo />,
   },
+  {
+    name: "OpenAI / ChatGPT",
+    category: "AI",
+    status: "Available",
+    description: "Hosted-model backend path for EasyFlow’s assistant using the same tenant-scoped response contract.",
+    logo: <OpenAiLogo />,
+  },
+  {
+    name: "Google Gemini",
+    category: "AI",
+    status: "Available",
+    description: "Hosted-model backend option for grounded supply-chain answers over the current tenant dataset.",
+    logo: <GeminiLogo />,
+  },
+  {
+    name: "Ollama",
+    category: "AI",
+    status: "Available",
+    description: "Local self-hosted model path for LangChain + MCP agentic execution with tenant-bounded tools.",
+    logo: <OllamaLogo />,
+  },
 ];
 
-const categories: ConnectorCategory[] = ["All", "ERP", "Warehouse", "Planning", "Infrastructure"];
+const categories: ConnectorCategory[] = ["All", "ERP", "Warehouse", "Planning", "Infrastructure", "AI"];
 
 export default function ConnectorsPage() {
   const [activeCategory, setActiveCategory] = useState<ConnectorCategory>("All");
@@ -265,6 +286,47 @@ function WarehouseLogo() {
       <path d="M5 14 17 5l12 9v14H5z" fill="#0f766e" opacity="0.18" />
       <path d="M9 17h6v8H9zM19 17h6v8h-6z" fill="#0f766e" opacity="0.85" />
       <path d="M5 14 17 5l12 9" fill="none" stroke="#0f766e" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function OpenAiLogo() {
+  return (
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden>
+      <g fill="none" stroke="#111827" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 6.5c2.6-1.8 6.1-1.2 7.9 1.4 1.3 1.9 1.4 4.4.4 6.4 2.8.2 5.2 2.1 5.7 4.9.7 3.3-1.4 6.6-4.7 7.3-2.4.5-4.8-.4-6.2-2.3-1.2 2.5-3.9 4.1-6.8 3.7-3.4-.4-5.9-3.5-5.5-6.9.2-2.4 1.8-4.4 4-5.2-1.9-2-2.3-5-1-7.4 1.6-2.8 5.1-3.8 7.9-2.2 0 .1.2.2.4.3Z" />
+        <path d="M13.4 10.6 20.4 10.7 24 17 20.5 23.3 13.6 23.3 10 17.1Z" />
+      </g>
+    </svg>
+  );
+}
+
+function GeminiLogo() {
+  return (
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden>
+      <defs>
+        <linearGradient id="geminiGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4f8cff" />
+          <stop offset="50%" stopColor="#7a6cff" />
+          <stop offset="100%" stopColor="#00c2ff" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M17 4.5c1.2 6.1 3.4 8.3 9.5 9.5-6.1 1.2-8.3 3.4-9.5 9.5-1.2-6.1-3.4-8.3-9.5-9.5 6.1-1.2 8.3-3.4 9.5-9.5Z"
+        fill="url(#geminiGradient)"
+      />
+    </svg>
+  );
+}
+
+function OllamaLogo() {
+  return (
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden>
+      <rect x="7" y="8" width="20" height="15" rx="5" fill="#111827" />
+      <rect x="11" y="11" width="4" height="4" rx="2" fill="#faf8f3" />
+      <rect x="19" y="11" width="4" height="4" rx="2" fill="#faf8f3" />
+      <path d="M12 25h10" stroke="#111827" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M15 23v4M19 23v4" stroke="#111827" strokeWidth="2.2" strokeLinecap="round" />
     </svg>
   );
 }
