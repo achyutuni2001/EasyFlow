@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Search, ChevronDown, Github, ExternalLink } from "lucide-react";
 import { docsNav } from "@/lib/docs-nav";
 import { cn } from "@/lib/utils";
+import { LogoWordmark } from "@/components/logo-wordmark";
 
 export function DocsSidebar({ activeSlug }: { activeSlug: string }) {
   const [search, setSearch] = useState("");
@@ -28,11 +29,8 @@ export function DocsSidebar({ activeSlug }: { activeSlug: string }) {
     <aside className="flex h-full flex-col overflow-hidden border-r border-white/8 bg-[hsl(214,55%,3%)]">
       {/* Logo */}
       <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
-        <a href="/" className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/5">
-            <span className="brand-wordmark text-[0.8rem]"><span>E</span><span>F</span></span>
-          </div>
-          <span className="brand-wordmark text-[1.25rem]"><span>Easy</span><span>Flow</span></span>
+        <a href="/" className="flex items-center">
+          <LogoWordmark className="h-7 w-[150px]" />
         </a>
         <button type="button" className="text-white/25 hover:text-white/50 transition">
           <ChevronDown className="h-4 w-4 rotate-90" />

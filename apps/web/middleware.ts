@@ -11,6 +11,8 @@ const PUBLIC_PAGE_PATHS = [
   "/globe",
   "/dashboard",
   "/workflows",
+  "/forecasting",
+  "/sales",
 ];
 
 const PUBLIC_API_PATHS = [

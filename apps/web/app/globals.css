@@ -187,6 +187,21 @@
 }
 
 @layer utilities {
+  @keyframes pitchBeam {
+    0% {
+      transform: translate3d(-4%, -2%, 0) rotate(32deg);
+      opacity: 0.34;
+    }
+    50% {
+      transform: translate3d(4%, 3%, 0) rotate(32deg);
+      opacity: 0.52;
+    }
+    100% {
+      transform: translate3d(-4%, -2%, 0) rotate(32deg);
+      opacity: 0.34;
+    }
+  }
+
   .glass-panel {
     @apply border border-white/10 bg-slate-950/40 backdrop-blur-xl;
   }

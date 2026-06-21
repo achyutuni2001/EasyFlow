@@ -35,6 +35,10 @@ model Tenant {
   purchaseOrders   TenantPurchaseOrder[]
   approvals        TenantApproval[]
   automationRules  TenantAutomationRule[]
+  salesContacts    SalesContact[]
+  salesLeads       SalesLead[]
+  salesDeals       SalesDeal[]
+  salesActivities  SalesActivity[]
 
   @@map("tenants")
 }
@@ -299,6 +303,99 @@ model TenantAutomationRule {
 
   @@index([tenantId])
   @@map("tenant_automation_rules")
+}
+
+// ─── Sales CRM ───────────────────────────────────────────────────────────────
+
+model SalesContact {
+  id         String       @id @default(cuid()) @db.VarChar(64)
+  tenantId   String       @map("tenant_id") @db.VarChar(64)
+  name       String       @db.VarChar(128)
+  email      String       @db.VarChar(128)
+  company    String       @db.VarChar(128)
+  title      String       @db.VarChar(128)
+  phone      String?      @db.VarChar(32)
+  country    String       @db.VarChar(64)
+  source     String       @default("manual") @db.VarChar(32)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  leads      SalesLead[]
+  activities SalesActivity[]
+
+  @@index([tenantId])
+  @@map("sales_contacts")
+}
+
+model SalesLead {
+  id          String       @id @default(cuid()) @db.VarChar(64)
+  tenantId    String       @map("tenant_id") @db.VarChar(64)
+  contactId   String?      @map("contact_id") @db.VarChar(64)
+  title       String       @db.VarChar(160)
+  company     String       @db.VarChar(128)
+  value       Float        @default(0)
+  stage       String       @default("prospect") @db.VarChar(32)
+  score       Int          @default(0)
+  priority    String       @default("medium") @db.VarChar(16)
+  source      String       @default("inbound") @db.VarChar(32)
+  owner       String       @db.VarChar(64)
+  nextAction  String?      @map("next_action") @db.VarChar(256)
+  closedAt    DateTime?    @map("closed_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact     SalesContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  activities  SalesActivity[]
+
+  @@index([tenantId, stage])
+  @@index([tenantId, createdAt])
+  @@map("sales_leads")
+}
+
+model SalesDeal {
+  id         String       @id @default(cuid()) @db.VarChar(64)
+  tenantId   String       @map("tenant_id") @db.VarChar(64)
+  title      String       @db.VarChar(160)
+  company    String       @db.VarChar(128)
+  value      Float
+  stage      String       @db.VarChar(32)
+  probability Int         @default(50)
+  owner      String       @db.VarChar(64)
+  closeDate  DateTime?    @map("close_date")
+  wonAt      DateTime?    @map("won_at")
+  lostAt     DateTime?    @map("lost_at")
+  lostReason String?      @map("lost_reason") @db.VarChar(256)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  activities SalesActivity[]
+
+  @@index([tenantId, stage])
+  @@index([tenantId, createdAt])
+  @@map("sales_deals")
+}
+
+model SalesActivity {
+  id        String        @id @default(cuid()) @db.VarChar(64)
+  tenantId  String        @map("tenant_id") @db.VarChar(64)
+  leadId    String?       @map("lead_id") @db.VarChar(64)
+  dealId    String?       @map("deal_id") @db.VarChar(64)
+  contactId String?       @map("contact_id") @db.VarChar(64)
+  type      String        @db.VarChar(32)
+  subject   String        @db.VarChar(256)
+  body      String?
+  outcome   String?       @db.VarChar(64)
+  dueAt     DateTime?     @map("due_at")
+  doneAt    DateTime?     @map("done_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead      SalesLead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  deal      SalesDeal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  contact   SalesContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, leadId])
+  @@map("sales_activities")
 }
 
 // ─── Better-Auth models ───────────────────────────────────────────────────────

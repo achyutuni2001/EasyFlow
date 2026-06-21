@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Globe2, ChevronLeft, ChevronRight } from "lucide-react";
 import { GlobeHero } from "../../components/globe-hero";
+import { LogoMark } from "@/components/logo-mark";
 import { tenantSeeds, TenantSeed } from "@/lib/tenant-seeds";
 import { loadAdminTenants } from "@/lib/admin-store";
 
@@ -107,7 +108,7 @@ export default function GlobePage() {
                 transition={{ delay: 0.35, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.36em] text-[hsl(184,73%,61%)]">
-                  <Globe2 className="h-3 w-3" />
+                  <LogoMark className="h-3.5 w-3.5" />
                   Tenant Workspaces
                 </div>
                 <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-4xl">

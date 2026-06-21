@@ -6,6 +6,8 @@ import {
 import { HomeFlow } from "@/components/home-flow";
 import { PublicSiteHeader } from "@/components/public-site-header";
 import { SupplyChainBg } from "@/components/supply-chain-bg";
+import { LogoWordmark } from "@/components/logo-wordmark";
+import { TruckLoader } from "@/components/truck-loader";
 
 const highlights = [
   {
@@ -127,9 +129,13 @@ export default function LandingPage() {
               <Globe2 className="h-3 w-3" />
               Supply chain coordination layer
             </div>
-            <h1 className="brand-wordmark mt-5 text-[1.75rem] leading-[0.98] md:text-[2.6rem] lg:text-[3.1rem]">
-              <span>Easy</span><span>Flow</span>
-            </h1>
+            <div className="mt-5 flex justify-center">
+              <LogoWordmark
+                centered
+                hero
+                className="h-28 w-[620px] md:h-36 md:w-[760px] lg:h-44 lg:w-[920px]"
+              />
+            </div>
             <p className="mt-4 text-[0.74rem] font-medium uppercase tracking-[0.17em] text-white/30 md:text-[0.8rem]">
               Easy insights. Clear visibility. Faster decisions.
             </p>
@@ -152,6 +158,9 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
+          </div>
+          <div className="absolute bottom-[74px] left-1/2 z-10 w-screen -translate-x-1/2 opacity-55 md:bottom-[78px]">
+            <TruckLoader />
           </div>
         </section>
 
@@ -343,12 +352,12 @@ function ApprovalPreview() {
       <text x="264" y="78" textAnchor="middle" fill="#82d949" fontSize="8" fontWeight="600">VP Sign-off</text>
       <line x1="100" y1="75" x2="118" y2="75" stroke="white" strokeOpacity="0.18" strokeDasharray="4 3" />
       <line x1="204" y1="75" x2="222" y2="75" stroke="white" strokeOpacity="0.18" strokeDasharray="4 3" />
-      <rect x="14" y="104" width="138" height="26" rx="10" fill="white" fillOpacity="0.04" />
-      <rect x="168" y="104" width="138" height="26" rx="10" fill="white" fillOpacity="0.04" />
-      <text x="28" y="121" fill="white" fillOpacity="0.45" fontSize="9">Value</text>
-      <text x="28" y="126" fill="#59e1d9" fontSize="10" fontWeight="700">$1.2M</text>
-      <text x="182" y="121" fill="white" fillOpacity="0.45" fontSize="9">Escalates in</text>
-      <text x="182" y="126" fill="#ff9a5a" fontSize="10" fontWeight="700">1h 48m</text>
+      <rect x="14" y="100" width="138" height="34" rx="10" fill="white" fillOpacity="0.04" />
+      <rect x="168" y="100" width="138" height="34" rx="10" fill="white" fillOpacity="0.04" />
+      <text x="28" y="115" fill="white" fillOpacity="0.45" fontSize="9">Value</text>
+      <text x="28" y="128" fill="#59e1d9" fontSize="11" fontWeight="700">$1.2M</text>
+      <text x="182" y="115" fill="white" fillOpacity="0.45" fontSize="9">Escalates in</text>
+      <text x="182" y="128" fill="#ff9a5a" fontSize="11" fontWeight="700">1h 48m</text>
     </svg>
   );
 }
@@ -357,17 +366,19 @@ function ReplenishmentPreview() {
   return (
     <svg viewBox="0 0 320 150" className="w-full" style={{ height: 150 }}>
       <rect x="12" y="18" width="296" height="114" rx="12" fill="white" fillOpacity="0.035" stroke="white" strokeOpacity="0.08" />
-      <polyline points="24,108 60,92 94,98 128,74 160,82 194,56 228,63 262,42 296,48" fill="none" stroke="#59e1d9" strokeWidth="3" />
-      <polygon points="24,108 60,92 94,98 128,74 160,82 194,56 228,63 262,42 296,48 296,126 24,126" fill="#59e1d9" fillOpacity="0.08" />
-      <rect x="22" y="28" width="72" height="24" rx="8" fill="white" fillOpacity="0.05" />
-      <text x="34" y="43" fill="white" fillOpacity="0.45" fontSize="9">Coverage</text>
-      <text x="34" y="48" fill="#59e1d9" fontSize="10" fontWeight="700">4.8d</text>
-      <rect x="108" y="28" width="90" height="24" rx="8" fill="white" fillOpacity="0.05" />
-      <text x="120" y="43" fill="white" fillOpacity="0.45" fontSize="9">Triggered SKUs</text>
-      <text x="120" y="48" fill="#82d949" fontSize="10" fontWeight="700">42 active</text>
-      <rect x="212" y="28" width="90" height="24" rx="8" fill="white" fillOpacity="0.05" />
-      <text x="224" y="43" fill="white" fillOpacity="0.45" fontSize="9">Priority</text>
-      <text x="224" y="48" fill="#ff9a5a" fontSize="10" fontWeight="700">APAC buffer</text>
+      {/* stat chips — sit above the chart */}
+      <rect x="22" y="24" width="72" height="28" rx="8" fill="white" fillOpacity="0.06" />
+      <text x="34" y="35" fill="white" fillOpacity="0.45" fontSize="8">Coverage</text>
+      <text x="34" y="47" fill="#59e1d9" fontSize="10" fontWeight="700">4.8d</text>
+      <rect x="108" y="24" width="96" height="28" rx="8" fill="white" fillOpacity="0.06" />
+      <text x="120" y="35" fill="white" fillOpacity="0.45" fontSize="8">Triggered SKUs</text>
+      <text x="120" y="47" fill="#82d949" fontSize="10" fontWeight="700">42 active</text>
+      <rect x="216" y="24" width="88" height="28" rx="8" fill="white" fillOpacity="0.06" />
+      <text x="228" y="35" fill="white" fillOpacity="0.45" fontSize="8">Priority</text>
+      <text x="228" y="47" fill="#ff9a5a" fontSize="10" fontWeight="700">APAC buffer</text>
+      {/* chart — starts below chips */}
+      <polyline points="24,124 60,110 94,116 128,94 160,100 194,78 228,84 262,66 296,70" fill="none" stroke="#59e1d9" strokeWidth="2.5" />
+      <polygon points="24,124 60,110 94,116 128,94 160,100 194,78 228,84 262,66 296,70 296,130 24,130" fill="#59e1d9" fillOpacity="0.08" />
     </svg>
   );
 }
@@ -384,11 +395,8 @@ function ShipmentPreview() {
       <text x="30" y="74" fill="white" fillOpacity="0.76" fontSize="10" fontWeight="600">SHP-3304 · Jakarta → Rotterdam</text>
       <text x="30" y="94" fill="white" fillOpacity="0.45" fontSize="9">Current handoff</text>
       <text x="120" y="94" fill="#ff9a5a" fontSize="9" fontWeight="700">Customs delay detected</text>
-      <text x="30" y="112" fill="white" fillOpacity="0.45" fontSize="9">Notifications</text>
-      <g transform="translate(118,101)">
-        <BellRing className="h-3 w-3 text-[hsl(184,73%,61%)]" />
-      </g>
-      <text x="136" y="112" fill="#59e1d9" fontSize="9" fontWeight="700">Warehouse · Logistics · Customer Ops</text>
+      <text x="30" y="112" fill="white" fillOpacity="0.45" fontSize="9">Notified</text>
+      <text x="80" y="112" fill="#59e1d9" fontSize="9" fontWeight="700">Warehouse · Logistics · Customer Ops</text>
     </svg>
   );
 }

@@ -1,4 +1,5 @@
 import { tenantSeeds } from "@/lib/tenant-seeds";
+import { buildTenantRiskSnapshot } from "@/lib/risk-signals";
 import {
   generateAutomationData,
   generateInventoryData,
@@ -23,7 +24,8 @@ export type KnowledgeSourceType =
   | "automation_execution"
   | "integration"
   | "route"
-  | "fleet";
+  | "fleet"
+  | "risk_signal";
 
 export type KnowledgeDocument = {
   tenantSlug: string;
@@ -47,22 +49,40 @@ export type TenantDataset = {
   logistics: ReturnType<typeof generateLogisticsData>;
   automation: ReturnType<typeof generateAutomationData>;
   logisticManagement: ReturnType<typeof generateLogisticManagementData>;
+  riskSignals: ReturnType<typeof buildTenantRiskSnapshot>;
 };
 
 export function loadTenantDataset(tenantSlug: string): TenantDataset | null {
   const tenant = tenantSeeds.find((entry) => entry.slug === tenantSlug);
   if (!tenant) return null;
 
+  const kpis = generateTenantKPIs(tenant.name);
+  const procurement = generateProcurementData(tenant.name);
+  const inventory = generateInventoryData(tenant.name);
+  const orders = generateOrdersData(tenant.name);
+  const suppliers = generateSuppliersData(tenant.name);
+  const logistics = generateLogisticsData(tenant.name);
+  const automation = generateAutomationData(tenant.name);
+  const logisticManagement = generateLogisticManagementData(tenant.name);
+
   return {
     tenant,
-    kpis: generateTenantKPIs(tenant.name),
-    procurement: generateProcurementData(tenant.name),
-    inventory: generateInventoryData(tenant.name),
-    orders: generateOrdersData(tenant.name),
-    suppliers: generateSuppliersData(tenant.name),
-    logistics: generateLogisticsData(tenant.name),
-    automation: generateAutomationData(tenant.name),
-    logisticManagement: generateLogisticManagementData(tenant.name),
+    kpis,
+    procurement,
+    inventory,
+    orders,
+    suppliers,
+    logistics,
+    automation,
+    logisticManagement,
+    riskSignals: buildTenantRiskSnapshot({
+      tenantName: tenant.name,
+      kpis,
+      inventory,
+      orders,
+      suppliers,
+      logistics,
+    }),
   };
 }
 
@@ -89,7 +109,7 @@ function makeDoc(
 }
 
 export function buildKnowledgeDocuments(dataset: TenantDataset): KnowledgeDocument[] {
-  const { tenant, kpis, procurement, inventory, orders, suppliers, logistics, automation, logisticManagement } = dataset;
+  const { tenant, kpis, procurement, inventory, orders, suppliers, logistics, automation, logisticManagement, riskSignals } = dataset;
   const docs: KnowledgeDocument[] = [];
 
   docs.push(
@@ -252,6 +272,26 @@ export function buildKnowledgeDocuments(dataset: TenantDataset): KnowledgeDocume
         `${fleet.vehicle} is a ${fleet.type} driven by ${fleet.driver}. Current location is ${fleet.location}, status is ${fleet.status}, utilization is ${fleet.utilization}, next maintenance is in ${fleet.nextMaintenance}.`,
         [fleet.id, fleet.vehicle, fleet.type, fleet.driver, fleet.status, "fleet", "maintenance"],
         fleet,
+      )
+    );
+  }
+
+  for (const signal of riskSignals.signals) {
+    docs.push(
+      makeDoc(
+        tenant.slug,
+        "risk_signal",
+        signal.id,
+        `Risk signal for ${signal.entityLabel}`,
+        [
+          signal.summary,
+          signal.predictedImpact,
+          `Recommended action: ${signal.recommendedAction}.`,
+          `Risk score is ${signal.riskScore} with level ${signal.riskLevel}.`,
+          signal.metrics.map((metric) => `${metric.label} ${metric.value}`).join(", "),
+        ].join(" "),
+        [signal.entityId, signal.entityLabel, signal.signalType, signal.riskLevel, "risk", "prediction", "attention"],
+        signal,
       )
     );
   }

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, ArrowRight, Globe2 } from "lucide-react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { LogoWordmark } from "@/components/logo-wordmark";
 
 const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
 
@@ -89,11 +90,8 @@ function AuthPage() {
       <div className="relative z-10 hidden flex-col justify-between border-r border-white/8 px-14 py-12 lg:flex lg:w-[48%]">
 
         {/* Back to home */}
-        <Link href="/landing" className="flex items-center gap-2.5 group w-fit">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition group-hover:border-white/20 group-hover:bg-white/8">
-            <span className="brand-wordmark text-[0.85rem]"><span>E</span><span>F</span></span>
-          </div>
-          <span className="brand-wordmark text-[1.45rem]"><span>Easy</span><span>Flow</span></span>
+        <Link href="/landing" className="flex items-center group w-fit">
+          <LogoWordmark className="h-8 w-[180px]" />
         </Link>
 
         {/* Hero copy */}
@@ -133,8 +131,8 @@ function AuthPage() {
 
         {/* Mobile logo */}
         <div className="mb-10 lg:hidden">
-          <Link href="/landing" className="brand-wordmark text-[2rem]">
-            <span>Easy</span><span>Flow</span>
+          <Link href="/landing" className="flex items-center">
+            <LogoWordmark className="h-10 w-[210px]" />
           </Link>
         </div>
 

@@ -23,6 +23,7 @@ const knowledgeSourceTypes = [
   "integration",
   "route",
   "fleet",
+  "risk_signal",
 ] as const satisfies readonly KnowledgeSourceType[];
 
 const sourceTypeSchema = z.enum(knowledgeSourceTypes);

@@ -13,7 +13,6 @@ const ERP_SYSTEMS = [
   { id: "dynamics", label: "Microsoft Dynamics 365",   logo: "D365", color: "text-sky-400",    bg: "bg-sky-500/10"    },
   { id: "netsuite", label: "NetSuite",                 logo: "NS",   color: "text-amber-400",  bg: "bg-amber-500/10"  },
   { id: "infor",    label: "Infor CloudSuite",         logo: "INF",  color: "text-purple-400", bg: "bg-purple-500/10" },
-  { id: "relex",    label: "Relex Solutions",          logo: "RLX",  color: "text-emerald-400",bg: "bg-emerald-500/10"},
 ];
 
 const HOW_IT_WORKS_STEPS = [

@@ -443,8 +443,7 @@ export const DOCS_CONTENT: Record<string, DocContent> = {
 │       ├── base.py             Connector interface
 │       ├── factory.py          Connector catalog + factory
 │       ├── http_adapter.py     Generic HTTP connector
-│       ├── webhook_connector.py n8n / webhook connector
-│       └── relex_connector.py  Relex-specific connector
+│       └── webhook_connector.py n8n / webhook connector
 ├── examples/
 │   └── n8n-workflows/          Ready-to-import n8n templates
 │       ├── sap-to-easyflow.json
@@ -1035,9 +1034,6 @@ docker compose up -d --build
         ["Oracle ERP Cloud", "n8n REST API", "Example template in repo", "Local template + payload pathway implemented"],
         ["Microsoft Dynamics 365", "n8n Dataverse API", "Planned source type", "Production validation pending"],
         ["NetSuite", "n8n REST / SuiteQL", "Planned source type", "Production validation pending"],
-        ["Infor CloudSuite", "Direct webhook or n8n HTTP", "Generic pathway", "Customer-side setup required"],
-        ["Relex Solutions", "Direct REST connector", "Built-in connector", "Connector implemented"],
-        ["Any system", "Direct webhook (curl / script)", "Generic webhook endpoint", "Supported through normalized event contract"],
       ]},
 
       { type: "h2", id: "data", text: "What data flows in" },
@@ -1158,9 +1154,6 @@ curl http://localhost:8000/api/webhooks/token/your-tenant-id
         ["Oracle ERP Cloud example", "n8n REST polling", "Purchase orders and inventory-style events", "Template in repo"],
         ["Microsoft Dynamics 365 pathway", "n8n Dataverse", "Sales, inventory, supplier-style events", "Design path documented"],
         ["NetSuite pathway", "n8n SuiteQL / REST", "Items, POs, vendor and inventory events", "Design path documented"],
-        ["Infor / custom ERP", "Webhook or n8n HTTP", "Normalized events from any source", "Generic setup available"],
-        ["Relex Solutions", "Direct REST connector", "Forecast and replenishment signals", "Connector implemented"],
-        ["Any REST API", "Direct webhook or n8n HTTP node", "Whatever the API returns after mapping", "Generic setup available"],
       ]},
 
       { type: "h2", id: "templates", text: "n8n workflow templates" },

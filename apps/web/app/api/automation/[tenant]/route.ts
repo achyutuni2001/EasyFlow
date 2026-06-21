@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+export const dynamic = "force-dynamic";
+
 import { getAutomationOverview, simulateAutomationEvent } from "@/lib/automation/simulator";
 import { automationSimulateRequestSchema } from "@/lib/db/zod/automation";
 

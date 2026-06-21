@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LogoWordmark } from "@/components/logo-wordmark";
 
 type PublicSiteHeaderProps = {
   variant?: "dark" | "light";
@@ -36,17 +37,8 @@ export function PublicSiteHeader({
   return (
     <header className={`sticky top-0 z-30 border-b px-6 py-4 md:px-10 ${shellClass}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-        <Link href="/landing" className="flex items-center gap-3">
-          <div className={`flex h-9 w-9 items-center justify-center rounded-xl border ${isDark ? "border-white/10 bg-white/5" : "border-slate-900/10 bg-slate-950/[0.03]"}`}>
-            <span className="brand-wordmark text-[0.95rem]">
-              <span>E</span>
-              <span>F</span>
-            </span>
-          </div>
-          <span className="brand-wordmark text-[1.5rem]">
-            <span>Easy</span>
-            <span>Flow</span>
-          </span>
+        <Link href="/landing" className="flex items-center">
+          <LogoWordmark className="h-8 w-[180px]" />
         </Link>
 
         <nav className="hidden items-center gap-7 text-[0.92rem] font-medium md:flex">

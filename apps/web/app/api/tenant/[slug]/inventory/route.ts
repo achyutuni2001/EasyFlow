@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getTenantInventory } from "@/lib/tenant-data";
 import { generateInventoryData } from "@/lib/tenant-utils";

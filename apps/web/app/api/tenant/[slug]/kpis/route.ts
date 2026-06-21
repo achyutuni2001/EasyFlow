@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getTenantKPIs } from "@/lib/tenant-data";
 import { generateTenantKPIs } from "@/lib/tenant-utils";

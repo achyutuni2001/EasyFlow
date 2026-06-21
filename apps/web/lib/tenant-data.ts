@@ -24,6 +24,7 @@ import {
   type AutomationRule,
   type TenantKPIs,
 } from "@/lib/tenant-utils";
+import { buildTenantRiskSnapshot } from "@/lib/risk-signals";
 import { tenantSeeds } from "@/lib/tenant-seeds";
 
 // ─── Tenant registry ─────────────────────────────────────────────────────────
@@ -416,6 +417,28 @@ export async function getTenantUsers(tenantSlug: string) {
 export async function getTenantLogisticManagement(tenantSlug: string) {
   const tenant = tenantSeeds.find((s) => s.slug === tenantSlug);
   return generateLogisticManagementData(tenant?.name ?? tenantSlug);
+}
+
+// ─── Risk intelligence ───────────────────────────────────────────────────────
+
+export async function getTenantRiskSignals(tenantSlug: string) {
+  const [tenant, kpis, inventory, orders, suppliers, logistics] = await Promise.all([
+    getTenantBySlug(tenantSlug),
+    getTenantKPIs(tenantSlug),
+    getTenantInventory(tenantSlug),
+    getTenantOrders(tenantSlug),
+    getTenantSuppliers(tenantSlug),
+    getTenantLogistics(tenantSlug),
+  ]);
+
+  return buildTenantRiskSnapshot({
+    tenantName: tenant?.name ?? tenantSlug,
+    kpis,
+    inventory,
+    orders,
+    suppliers,
+    logistics,
+  });
 }
 
 // ─── Internal helper ─────────────────────────────────────────────────────────

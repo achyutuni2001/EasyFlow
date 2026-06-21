@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Bell,
+  ExternalLink,
   Globe,
   LayoutDashboard,
   Menu,
@@ -24,6 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { TenantCopilot } from "@/components/tenant-copilot";
+import { LogoWordmark } from "@/components/logo-wordmark";
 
 const tenantModules = [
   { href: "",                     label: "Dashboard",                 icon: LayoutDashboard },
@@ -38,6 +40,13 @@ const tenantModules = [
 
 const globalLinks = [
   { href: "/forecasting", label: "Forecasting", icon: TrendingUp },
+];
+
+const quickAccessLinks = [
+  { href: (tenant: string) => `/workflows?tenant=${encodeURIComponent(tenant)}`, label: "Process Canvas", icon: Workflow },
+  { href: (tenant: string) => `/dashboard?tenant=${encodeURIComponent(tenant)}`, label: "Operations Dashboard", icon: LayoutDashboard },
+  { href: (tenant: string) => `/forecasting?tenant=${encodeURIComponent(tenant)}`, label: "Forecasting", icon: TrendingUp },
+  { href: (tenant: string) => `/globe?tenant=${encodeURIComponent(tenant)}`, label: "View on Globe", icon: Globe },
 ];
 
 export default function TenantLayout({
@@ -77,12 +86,8 @@ export default function TenantLayout({
         >
           {/* Logo */}
           <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
-            <Link href="/globe" className="flex items-center gap-2.5 text-sm font-semibold text-white hover:text-secondary transition">
-              <Globe className="h-5 w-5 text-secondary" />
-              <span className="brand-wordmark text-2xl leading-none">
-                <span className="text-white">Easy</span>
-                <span className="text-secondary">Flow</span>
-              </span>
+            <Link href="/globe" className="flex items-center text-sm font-semibold text-white hover:text-secondary transition">
+              <LogoWordmark className="h-8 w-[180px]" />
             </Link>
             <button onClick={() => setMobileOpen(false)} className="md:hidden text-white/40 hover:text-white">
               <X className="h-5 w-5" />
@@ -119,6 +124,26 @@ export default function TenantLayout({
                 </Link>
               );
             })}
+
+            <div className="pt-4 mt-4 border-t border-white/[0.06]">
+              <div className="px-4 pb-2 text-[0.6rem] uppercase tracking-[0.28em] text-white/20">
+                Quick Access
+              </div>
+              <div className="space-y-1">
+                {quickAccessLinks.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href(tenantName)}
+                    className="flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm text-white/40 hover:bg-white/5 hover:text-white transition border border-transparent"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                    <ExternalLink className="ml-auto h-3.5 w-3.5 opacity-40" />
+                  </Link>
+                ))}
+              </div>
+            </div>
           </nav>
 
           {/* Platform-wide links */}

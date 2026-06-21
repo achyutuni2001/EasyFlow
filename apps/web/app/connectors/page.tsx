@@ -53,27 +53,6 @@ const connectors: ConnectorCard[] = [
     logo: <N8nLogo />,
   },
   {
-    name: "Relex",
-    category: "Core Systems",
-    status: "Template",
-    description: "Forecasting and replenishment signals for stock coverage, planning pressure, and replenishment timing.",
-    logo: <RelexLogo />,
-  },
-  {
-    name: "Webhooks",
-    category: "Automation",
-    status: "Available",
-    description: "Vendor-neutral event ingestion for order updates, warehouse events, supplier alerts, and approvals.",
-    logo: <WebhookLogo />,
-  },
-  {
-    name: "Custom REST API",
-    category: "Automation",
-    status: "Bring your own",
-    description: "Map any REST-based operational system into EasyFlow’s connector and event model.",
-    logo: <ApiLogo />,
-  },
-  {
     name: "OpenAI / ChatGPT",
     category: "AI",
     status: "Available",
@@ -190,7 +169,7 @@ export default function ConnectorsPage() {
                   className="overflow-hidden rounded-[22px] border border-white/8 bg-white/[0.04] shadow-[0_18px_60px_rgba(5,11,20,0.24)] backdrop-blur-md transition hover:border-[hsl(184,73%,61%,0.16)] hover:bg-white/[0.06]"
                 >
                   <div className="px-5 py-5">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/8 bg-slate-950/40">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center">
                       {connector.logo}
                     </div>
                     <h2 className="text-[1.1rem] font-semibold tracking-tight text-white">{connector.name}</h2>
@@ -257,26 +236,6 @@ function N8nLogo() {
       <span className="h-3 w-3 rounded-full bg-[#f04f88]" />
     </div>
   );
-}
-
-function RelexLogo() {
-  return <div className="rounded-lg bg-[#93df2c] px-2 py-1 text-[0.82rem] font-bold text-slate-950">RELEX</div>;
-}
-
-function WebhookLogo() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden>
-      <circle cx="9" cy="16" r="4" fill="#111827" />
-      <circle cx="23" cy="9" r="4" fill="#111827" />
-      <circle cx="23" cy="23" r="4" fill="#111827" />
-      <path d="M12 16h4a5 5 0 0 0 5-5" fill="none" stroke="#111827" strokeWidth="2.2" />
-      <path d="M12 16h4a5 5 0 0 1 5 5" fill="none" stroke="#111827" strokeWidth="2.2" />
-    </svg>
-  );
-}
-
-function ApiLogo() {
-  return <div className="rounded-lg bg-[#4f46e5] px-2 py-1 text-[0.92rem] font-bold text-white">API</div>;
 }
 
 function OpenAiLogo() {

@@ -52,7 +52,7 @@ export function SupplyChainBg() {
         @keyframes plane-1 {
           0%   { transform: translateX(108vw) translateY(0) rotate(-7deg); }
           50%  { transform: translateX(52vw) translateY(-12px) rotate(-3deg); }
-          100% { transform: translateX(-180px) translateY(10px) rotate(2deg); }
+          100% { transform: translateX(-360px) translateY(10px) rotate(2deg); }
         }
         /* ── Warehouse gentle bob ── */
         @keyframes wh-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
@@ -103,10 +103,10 @@ export function SupplyChainBg() {
             ════════════════════════════════════════════════════════════════ */}
 
         {/* Warehouse LEFT + conveyor */}
-        <svg width="340" height="198" viewBox="0 0 430 250"
+        <svg width="372" height="198" viewBox="-24 0 454 250"
           className="absolute hidden lg:block"
           style={{
-            left: 0,
+            left: "-12px",
             top: "18%",
             opacity: 0.85,
             zIndex: 2,
@@ -322,69 +322,6 @@ export function SupplyChainBg() {
           </g>
         </svg>
 
-        {/* Delivery truck — starts at right bezel and moves left */}
-        <svg width="240" height="78" viewBox="0 0 280 90"
-          className="absolute hidden lg:block"
-          style={{
-            bottom: 116,
-            right: -6,
-            zIndex: 2,
-            opacity: 0.88,
-            animation: "truck-edge-left 18s linear infinite",
-          }}>
-          {/* Cab — left side, facing left */}
-          <rect x="2" y="8" width="86" height="68" rx="6" fill="#59e1d9" />
-          <rect x="10" y="16" width="60" height="36" rx="4" fill="#061018" opacity="0.5" />
-          <rect x="4" y="58" width="10" height="6" rx="2" fill="#59e1d9" opacity="0.9" />
-          <rect x="82" y="0" width="6" height="20" rx="3" fill="#59e1d9" opacity="0.7" />
-          {/* Trailer */}
-          <rect x="86" y="16" width="190" height="62" rx="4" fill="#59e1d9" />
-          <line x1="170" y1="16" x2="170" y2="78" stroke="#061018" strokeWidth="2" opacity="0.2" />
-          <line x1="222" y1="16" x2="222" y2="78" stroke="#061018" strokeWidth="1.5" opacity="0.15" />
-          {/* Cargo box — appears after loading */}
-          <g style={{ animation: "cargo-pulse 3.8s ease-in-out infinite" }}>
-            <rect x="100" y="26" width="52" height="32" rx="3" fill="#82d949" opacity="0.7" />
-            <line x1="126" y1="26" x2="126" y2="58" stroke="#061018" strokeWidth="1.5" opacity="0.3" />
-            <rect x="100" y="26" width="52" height="6" rx="2" fill="#061018" opacity="0.15" />
-          </g>
-          {/* Wheels */}
-          {[32, 140, 196, 252].map((cx) => (
-            <g key={cx}>
-              <circle cx={cx} cy="83" r="13" fill="#061018" opacity="0.45" />
-              <circle cx={cx} cy="83" r="5" fill="#59e1d9" opacity="0.5" />
-            </g>
-          ))}
-          <rect x="0" y="88" width="280" height="2" rx="1" fill="#59e1d9" opacity="0.2" />
-        </svg>
-
-        {/* Forklift — restored in the lower-right corner, separate from truck lane */}
-        <svg width="132" height="108" viewBox="0 0 200 160"
-          className="absolute hidden lg:block"
-          style={{
-            bottom: 18,
-            right: 132,
-            opacity: 0.52,
-            zIndex: 2,
-            animation: "fork-bob 8s ease-in-out infinite",
-          }}>
-          <rect x="0" y="148" width="200" height="3" rx="1" fill="#59e1d9" opacity="0.35" />
-          <rect x="34" y="18" width="7" height="112" rx="3" fill="#59e1d9" />
-          <rect x="50" y="18" width="7" height="112" rx="3" fill="#59e1d9" />
-          <rect x="52" y="86" width="16" height="38" rx="2" fill="#59e1d9" />
-          <rect x="0" y="102" width="56" height="7" rx="2" fill="#59e1d9" />
-          <rect x="0" y="116" width="56" height="7" rx="2" fill="#59e1d9" />
-          <rect x="8" y="70" width="38" height="20" rx="3" fill="#82d949" opacity="0.55" />
-          <rect x="62" y="58" width="96" height="72" rx="5" fill="#59e1d9" />
-          <rect x="72" y="66" width="48" height="34" rx="4" fill="#061018" opacity="0.45" />
-          <rect x="62" y="22" width="96" height="8" rx="3" fill="#59e1d9" opacity="0.8" />
-          <rect x="62" y="22" width="7" height="36" rx="3" fill="#59e1d9" opacity="0.8" />
-          <rect x="151" y="22" width="7" height="36" rx="3" fill="#59e1d9" opacity="0.8" />
-          <rect x="152" y="78" width="34" height="52" rx="5" fill="#59e1d9" opacity="0.85" />
-          <circle cx="84" cy="138" r="19" fill="#061018" opacity="0.5" />
-          <circle cx="84" cy="138" r="9" fill="#59e1d9" opacity="0.55" />
-          <circle cx="158" cy="140" r="14" fill="#061018" opacity="0.5" />
-          <circle cx="158" cy="140" r="6" fill="#59e1d9" opacity="0.55" />
-        </svg>
 
       </div>
     </>

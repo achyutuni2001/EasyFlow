@@ -13,6 +13,7 @@ import {
   Zap,
   ExternalLink,
 } from "lucide-react";
+import { LogoMark } from "@/components/logo-mark";
 import { TenantMiniCanvas } from "@/components/tenant-mini-canvas";
 import { initialProcesses } from "@/components/process-builder";
 
@@ -20,6 +21,30 @@ type TenantInfo = { name: string; industry: string; headquarters: string; mode: 
 type KPI = {
   healthScore: number; openPOs: number; onTimeDelivery: string;
   lowStockAlerts: number; delayedShipments: number; pendingApprovals: number;
+};
+type RiskSignal = {
+  id: string;
+  entityType: "overview" | "inventory_sku" | "order" | "supplier" | "shipment";
+  entityId: string;
+  entityLabel: string;
+  signalType: string;
+  riskLevel: "low" | "medium" | "high" | "critical";
+  riskScore: number;
+  summary: string;
+  recommendedAction: string;
+  predictedImpact: string;
+  metrics: Array<{ label: string; value: string }>;
+};
+type RiskSnapshot = {
+  provider: string;
+  generatedAt: string;
+  summary: {
+    criticalCount: number;
+    highCount: number;
+    mediumCount: number;
+    topPriority: string | null;
+  };
+  signals: RiskSignal[];
 };
 
 const modules = [
@@ -82,6 +107,7 @@ const modules = [
 export default function TenantOverviewPage({ params }: { params: { tenant: string } }) {
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
   const [kpis, setKpis] = useState<KPI | null>(null);
+  const [riskSnapshot, setRiskSnapshot] = useState<RiskSnapshot | null>(null);
   const base = `/globe/tenant/${params.tenant}`;
 
   useEffect(() => {
@@ -97,6 +123,11 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
       .then((r) => r.json())
       .then((d) => { if (d?.name) setTenant(d); })
       .catch(() => {});
+
+    fetch(`/api/tenant/${params.tenant}/risk-signals`)
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d?.signals)) setRiskSnapshot(d); })
+      .catch(() => {});
   }, [params.tenant]);
 
   const tenantName = tenant?.name ?? params.tenant.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -107,9 +138,7 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
       <div>
         <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(184,73%,61%)]">
           <div className="flex h-5 w-5 items-center justify-center rounded-md border border-[hsl(184,73%,61%)]/30 bg-[hsl(184,73%,61%)]/10">
-            <span className="brand-wordmark text-[0.6rem] leading-none">
-              <span>E</span><span>F</span>
-            </span>
+            <LogoMark className="h-3.5 w-3.5" />
           </div>
           Tenant Overview
         </div>
@@ -121,8 +150,8 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
         </div>
       </div>
 
-      {/* Two-column: canvas left, KPIs + modules right */}
-      <div className="grid gap-5 lg:grid-cols-[1fr_1.4fr]">
+      {/* Two-column: canvas left, KPI strip right */}
+      <div className="grid gap-5 lg:grid-cols-[1fr_1.15fr]">
 
         {/* LEFT — Operations structure canvas */}
         <div className="flex flex-col gap-3">
@@ -141,13 +170,30 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
           {/* Process info */}
           <div className="rounded-[18px] border border-white/[0.07] bg-white/[0.02] px-4 py-3">
             <div className="text-[0.65rem] uppercase tracking-[0.28em] text-white/30 mb-1">Active Process</div>
-            <div className="text-sm font-medium text-white/80">
+            <div className="text-sm font-medium text-white/85">
               {initialProcesses.find((p) => p.tenantName === tenantName)?.processName ?? "Supply Chain Flow"}
+            </div>
+            <div className="mt-2 text-[0.8rem] leading-5 text-white/45">
+              This is the operating flow the tenant works through for approvals, replenishment, handoffs, and escalation.
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href={`/workflows?tenant=${encodeURIComponent(tenantName)}`}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:bg-white/10 hover:text-white"
+              >
+                Open canvas
+              </Link>
+              <Link
+                href={`/dashboard?tenant=${encodeURIComponent(tenantName)}`}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:bg-white/10 hover:text-white"
+              >
+                View operations
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* RIGHT — KPIs + modules */}
+        {/* RIGHT — KPI strip */}
         <div className="flex flex-col gap-5">
           {/* KPI strip */}
           {kpis ? (
@@ -176,25 +222,41 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
             </div>
           )}
 
-          {/* Module grid */}
-          <div>
-            <div className="mb-3 text-[0.65rem] uppercase tracking-[0.38em] text-white/30">Modules</div>
-            <div className="grid grid-cols-2 gap-3">
+        </div>
+      </div>
+
+      <div className="grid gap-5">
+        <div className="rounded-[20px] border border-white/[0.07] bg-white/[0.02] p-4">
+          <div className="mb-3">
+            <div className="text-[0.65rem] uppercase tracking-[0.38em] text-white/30">Modules</div>
+            <div className="mt-1 text-sm text-white/50">
+              Wide operational surfaces for day-to-day work across the tenant workspace.
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-[18px] border border-white/10 bg-[hsl(217,45%,8%)]">
+            <div className="grid grid-cols-[86px_1.2fr_2.1fr_88px] gap-3 border-b border-white/10 px-4 py-3 text-[0.58rem] uppercase tracking-[0.22em] text-white/35">
+              <div>Area</div>
+              <div>Module</div>
+              <div>Description</div>
+              <div className="text-right">Action</div>
+            </div>
+            <div className="divide-y divide-white/10">
               {modules.map((mod) => {
                 const Icon = mod.icon;
                 return (
                   <Link
                     key={mod.href}
                     href={`${base}/${mod.href}`}
-                    className="group relative rounded-[18px] border bg-[hsl(217,45%,8%)] p-4 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)]"
-                    style={{ borderColor: "rgba(255,255,255,0.07)" }}
+                    className="grid grid-cols-[86px_1.2fr_2.1fr_88px] items-center gap-3 px-4 py-4 transition hover:bg-white/[0.03]"
                   >
-                    <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border ${mod.bg} ${mod.border}`}>
-                      <Icon className={`h-4 w-4 ${mod.accent}`} />
+                    <div>
+                      <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border ${mod.bg} ${mod.border}`}>
+                        <Icon className={`h-4 w-4 ${mod.accent}`} />
+                      </div>
                     </div>
-                    <div className="mt-3 text-sm font-semibold text-white">{mod.label}</div>
-                    <div className="mt-1 text-[0.72rem] leading-4 text-white/35">{mod.description}</div>
-                    <div className={`mt-3 text-[0.6rem] uppercase tracking-[0.2em] ${mod.accent} opacity-0 transition group-hover:opacity-100`}>
+                    <div className="text-sm font-semibold text-white">{mod.label}</div>
+                    <div className="text-[0.8rem] leading-6 text-white/45">{mod.description}</div>
+                    <div className={`text-right text-[0.62rem] uppercase tracking-[0.18em] ${mod.accent}`}>
                       Open →
                     </div>
                   </Link>
@@ -203,25 +265,97 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Quick links */}
-      <div className="rounded-[20px] border border-white/[0.07] bg-white/[0.02] px-5 py-4">
-        <div className="text-[0.65rem] uppercase tracking-[0.38em] text-white/30 mb-3">Quick Access</div>
-        <div className="flex flex-wrap gap-2.5">
-          {[
-            { label: "Process Canvas", href: `/workflows?tenant=${encodeURIComponent(tenantName)}` },
-            { label: "Operations Dashboard", href: `/dashboard?tenant=${encodeURIComponent(tenantName)}` },
-            { label: "Forecasting", href: `/forecasting?tenant=${encodeURIComponent(tenantName)}` },
-            { label: "View on Globe", href: `/globe?tenant=${encodeURIComponent(tenantName)}` },
-          ].map(({ label, href }) => (
-            <Link key={label} href={href}
-              className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-[0.8rem] text-white/55 transition hover:bg-white/10 hover:text-white">
-              {label}
-            </Link>
-          ))}
+        <div className="rounded-[20px] border border-white/[0.07] bg-white/[0.02] p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-[0.65rem] uppercase tracking-[0.38em] text-white/30">Risk Intelligence</div>
+              <div className="mt-1 text-sm text-white/55">
+                Prioritized operational risks shaped for downstream scoring and AI explanation.
+              </div>
+            </div>
+            {riskSnapshot ? (
+              <div className="rounded-full border border-[hsl(184,73%,61%)]/20 bg-[hsl(184,73%,61%)]/10 px-3 py-1 text-[0.6rem] uppercase tracking-[0.22em] text-[hsl(184,73%,61%)]">
+                {riskSnapshot.provider}
+              </div>
+            ) : null}
+          </div>
+
+          {riskSnapshot ? (
+            <div className="mt-4 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  { label: "Critical", value: riskSnapshot.summary.criticalCount, tone: "text-red-300" },
+                  { label: "High", value: riskSnapshot.summary.highCount, tone: "text-[hsl(25,95%,63%)]" },
+                  { label: "Medium", value: riskSnapshot.summary.mediumCount, tone: "text-[hsl(45,95%,65%)]" },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-3">
+                    <div className="text-[0.58rem] uppercase tracking-[0.22em] text-white/35">{item.label}</div>
+                    <div className={`mt-1 text-lg font-semibold ${item.tone}`}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5">
+                <div className="text-[0.58rem] uppercase tracking-[0.22em] text-white/35">Top Priority</div>
+                <div className="mt-1.5 text-sm leading-6 text-white/80">
+                  {riskSnapshot.summary.topPriority}
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-[18px] border border-white/10 bg-[hsl(217,45%,8%)]">
+                <div className="grid grid-cols-[120px_1.4fr_1.6fr_120px] gap-3 border-b border-white/10 px-4 py-3 text-[0.58rem] uppercase tracking-[0.22em] text-white/35">
+                  <div>Entity</div>
+                  <div>Signal</div>
+                  <div>Predicted Impact</div>
+                  <div className="text-right">Severity</div>
+                </div>
+                <div className="divide-y divide-white/10">
+                  {riskSnapshot.signals.slice(0, 4).map((signal) => (
+                    <div key={signal.id} className="grid grid-cols-[120px_1.4fr_1.6fr_120px] gap-3 px-4 py-4">
+                      <div className="text-[0.68rem] uppercase tracking-[0.18em] text-white/35">
+                        {signal.entityType.replace(/_/g, " ")}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-white">{signal.summary}</div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {signal.metrics.map((metric) => (
+                            <span
+                              key={`${signal.id}-${metric.label}`}
+                              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[0.68rem] text-white/55"
+                            >
+                              {metric.label}: {metric.value}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-[0.8rem] leading-6 text-white/50">{signal.predictedImpact}</div>
+                      <div className="flex items-start justify-end">
+                        <div className={`rounded-full px-2.5 py-1 text-[0.55rem] uppercase tracking-[0.18em] ${
+                          signal.riskLevel === "critical"
+                            ? "bg-red-500/15 text-red-300"
+                            : signal.riskLevel === "high"
+                              ? "bg-orange-500/15 text-[hsl(25,95%,63%)]"
+                              : "bg-yellow-500/15 text-[hsl(45,95%,65%)]"
+                        }`}>
+                          {signal.riskLevel}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="h-20 animate-pulse rounded-2xl border border-white/10 bg-white/[0.03]" />
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
     </div>
   );
 }
