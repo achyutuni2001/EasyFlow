@@ -181,18 +181,18 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-6 py-8 md:px-10 md:py-12">
-          <div className="grid gap-4 md:grid-cols-2">
+        <section className="mx-auto max-w-6xl px-6 py-10 md:px-10 md:py-14">
+          <div className="grid gap-5 md:grid-cols-2">
             {highlights.map((item) => (
               <div
                 key={item.title}
-                className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6 backdrop-blur-xl"
+                className="rounded-[28px] border border-white/8 bg-slate-950/60 p-8 backdrop-blur-xl"
               >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                  <item.icon className="h-4.5 w-4.5 text-[hsl(184,73%,61%)]" />
+                <div className="mb-5 flex h-13 w-13 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                  <item.icon className="h-6 w-6 text-[hsl(184,73%,61%)]" />
                 </div>
-                <h2 className="text-[1rem] font-semibold tracking-tight text-white">{item.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-white/45">{item.body}</p>
+                <h2 className="text-[1.15rem] font-semibold tracking-tight text-white">{item.title}</h2>
+                <p className="mt-2.5 text-[0.9rem] leading-7 text-white/45">{item.body}</p>
               </div>
             ))}
           </div>
