@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copy, CheckCircle2, RefreshCcw, Zap, ExternalLink, Workflow, Webhook, Info } from "lucide-react";
+import { Copy, CheckCircle2, RefreshCcw, Zap, ExternalLink, Workflow, Webhook, Info, Database, Play, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getTenantConnectors } from "@/lib/connectors";
 import type { TenantConnectorItem } from "@/lib/connectors";
@@ -33,11 +33,17 @@ export function IntegrationsAdminPanel() {
   const [message, setMessage] = useState<string | null>(null);
   const [webhookToken, setWebhookToken] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"setup" | "status" | "raw">("setup");
+  const [activeTab, setActiveTab] = useState<"setup" | "status" | "raw" | "databricks">("setup");
+  const [dbConfig, setDbConfig] = useState<{ configured: boolean; host?: string; warehouseId?: string; missing?: string[] } | null>(null);
+  const [dbTestResult, setDbTestResult] = useState<{ ok: boolean; latencyMs?: number; error?: string } | null>(null);
+  const [dbTesting, setDbTesting] = useState(false);
+  const [dbIngesting, setDbIngesting] = useState(false);
+  const [dbIngestResult, setDbIngestResult] = useState<{ ok: boolean; rowsIngested?: number; tenantsUpdated?: string[]; error?: string } | null>(null);
 
   useEffect(() => {
     void fetchToken(tenantId);
     void loadConnectors(tenantId);
+    void loadDatabricksConfig();
   }, []);
 
   async function fetchToken(id: string) {
@@ -63,6 +69,39 @@ export function IntegrationsAdminPanel() {
       setConnectors([]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadDatabricksConfig() {
+    try {
+      const res = await fetch("/api/integrations/databricks");
+      if (res.ok) setDbConfig(await res.json() as typeof dbConfig);
+    } catch { /* server not running */ }
+  }
+
+  async function testDatabricksConnection() {
+    setDbTesting(true);
+    setDbTestResult(null);
+    try {
+      const res = await fetch("/api/integrations/databricks", { method: "POST" });
+      setDbTestResult(await res.json() as typeof dbTestResult);
+    } catch (err) {
+      setDbTestResult({ ok: false, error: String(err) });
+    } finally {
+      setDbTesting(false);
+    }
+  }
+
+  async function triggerDatabricksIngest() {
+    setDbIngesting(true);
+    setDbIngestResult(null);
+    try {
+      const res = await fetch(`/api/integrations/databricks/ingest?tenant=${encodeURIComponent(tenantId)}`, { method: "POST" });
+      setDbIngestResult(await res.json() as typeof dbIngestResult);
+    } catch (err) {
+      setDbIngestResult({ ok: false, error: String(err) });
+    } finally {
+      setDbIngesting(false);
     }
   }
 
@@ -114,9 +153,10 @@ export function IntegrationsAdminPanel() {
       {/* ── Tabs ───────────────────────────────────────────────────────── */}
       <div className="flex gap-1 rounded-[20px] border border-white/10 bg-white/3 p-1.5">
         {([
-          { id: "setup",  label: "Setup Guide",        icon: Workflow },
-          { id: "status", label: "Connection Status",  icon: CheckCircle2 },
-          { id: "raw",    label: "Raw Connectors",     icon: Zap },
+          { id: "setup",       label: "Setup Guide",        icon: Workflow },
+          { id: "status",      label: "Connection Status",  icon: CheckCircle2 },
+          { id: "raw",         label: "Raw Connectors",     icon: Zap },
+          { id: "databricks",  label: "Databricks",         icon: Database },
         ] as const).map((tab) => (
           <button
             key={tab.id}
@@ -328,6 +368,187 @@ export function IntegrationsAdminPanel() {
                 <span key={e} className="rounded-full bg-white/5 px-2.5 py-1 font-mono text-[0.68rem] text-white/45">{e}</span>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Databricks tab ──────────────────────────────────────────────── */}
+      {activeTab === "databricks" && (
+        <div className="space-y-5">
+
+          {/* Config status */}
+          <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+            <div className="mb-4 flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+              <Database className="h-3.5 w-3.5" />
+              Databricks configuration
+            </div>
+            {dbConfig === null ? (
+              <p className="text-sm text-white/40">Loading…</p>
+            ) : dbConfig.configured ? (
+              <div className="space-y-3">
+                <CredentialRow label="Workspace host" value={dbConfig.host ?? ""} />
+                <CredentialRow label="SQL warehouse" value={dbConfig.warehouseId ?? ""} />
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 px-4 py-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-300">Not configured</p>
+                    <p className="mt-1 text-[0.8rem] leading-6 text-amber-400/70">
+                      Add these environment variables to <code className="rounded bg-white/8 px-1.5 py-0.5 text-[0.75rem]">apps/web/.env.local</code> and restart the dev server.
+                    </p>
+                    <div className="mt-3 space-y-1.5">
+                      {(dbConfig.missing ?? ["DATABRICKS_HOST", "DATABRICKS_TOKEN", "DATABRICKS_WAREHOUSE_ID"]).map((v) => (
+                        <div key={v} className="font-mono text-[0.78rem] text-amber-300/80">{v}=</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* How data flows */}
+          <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+            <div className="mb-4 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+              Data flow
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              {[
+                "Operational data (ERP / events)",
+                "→",
+                "Databricks batch jobs",
+                "→",
+                "risk_signal_feed table",
+                "→",
+                "EasyFlow ingest endpoint",
+                "→",
+                "Risk Intelligence panel",
+              ].map((item, i) => (
+                item === "→"
+                  ? <span key={i} className="text-white/20 text-lg">→</span>
+                  : <span key={i} className={cn(
+                      "rounded-full border px-3 py-1.5 text-[0.78rem] font-medium",
+                      i === 4 ? "border-[hsl(184,73%,61%)]/30 bg-[hsl(184,73%,61%)]/10 text-[hsl(184,73%,61%)]" :
+                      i === 6 ? "border-[hsl(82,78%,71%)]/30 bg-[hsl(82,78%,71%)]/10 text-[hsl(82,78%,71%)]" :
+                      "border-white/10 text-white/55"
+                    )}>
+                    {item}
+                  </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Databricks table DDL */}
+          <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+            <div className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+              Required Databricks table
+            </div>
+            <p className="mb-4 text-[0.82rem] leading-6 text-white/45">
+              Create this table in your Databricks workspace. Your ML scoring jobs write rows here; EasyFlow reads them.
+            </p>
+            <pre className="overflow-x-auto rounded-2xl border border-white/8 bg-[hsl(214,55%,3%)] px-5 py-4 text-[0.75rem] leading-6 text-[hsl(184,73%,61%)]">
+{`CREATE TABLE IF NOT EXISTS easyflow.risk_signal_feed (
+  tenant           STRING NOT NULL,
+  entity_type      STRING NOT NULL,  -- inventory_sku | order | supplier | shipment
+  entity_id        STRING NOT NULL,
+  entity_label     STRING,
+  signal_type      STRING NOT NULL,  -- stockout_risk | order_slip_risk | ...
+  risk_level       STRING NOT NULL,  -- low | medium | high | critical
+  risk_score       DOUBLE NOT NULL,  -- 0–99
+  summary          STRING,
+  recommended_action STRING,
+  predicted_impact STRING,
+  metric_coverage  STRING,
+  metric_fill_rate STRING,
+  metric_lead_time STRING,
+  computed_at      TIMESTAMP NOT NULL
+)
+USING DELTA
+PARTITIONED BY (tenant);`}
+            </pre>
+          </div>
+
+          {/* Test connection + manual ingest */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+              <div className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+                Test connection
+              </div>
+              <p className="mb-4 text-[0.8rem] leading-6 text-white/45">
+                Runs <code className="rounded bg-white/8 px-1.5 py-0.5 text-[0.72rem]">SELECT 1</code> against your SQL warehouse to verify credentials.
+              </p>
+              <button
+                type="button"
+                onClick={() => void testDatabricksConnection()}
+                disabled={dbTesting || !dbConfig?.configured}
+                className="inline-flex items-center gap-2 rounded-full bg-[hsl(184,73%,61%)] px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:brightness-105 disabled:opacity-40"
+              >
+                <Play className="h-4 w-4" />
+                {dbTesting ? "Testing…" : "Test connection"}
+              </button>
+              {dbTestResult && (
+                <div className={cn(
+                  "mt-4 rounded-2xl border px-4 py-3 text-[0.8rem]",
+                  dbTestResult.ok
+                    ? "border-emerald-500/20 bg-emerald-500/8 text-emerald-300"
+                    : "border-red-500/20 bg-red-500/8 text-red-300"
+                )}>
+                  {dbTestResult.ok
+                    ? `Connected — ${dbTestResult.latencyMs}ms`
+                    : dbTestResult.error}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+              <div className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+                Manual ingest
+              </div>
+              <p className="mb-4 text-[0.8rem] leading-6 text-white/45">
+                Pull the latest risk signals for <strong className="text-white/65">{tenantId}</strong> from Databricks into EasyFlow now.
+                In production, call this from a cron job or n8n schedule.
+              </p>
+              <button
+                type="button"
+                onClick={() => void triggerDatabricksIngest()}
+                disabled={dbIngesting || !dbConfig?.configured}
+                className="inline-flex items-center gap-2 rounded-full border border-[hsl(184,73%,61%)]/40 bg-[hsl(184,73%,61%)]/10 px-5 py-2.5 text-sm font-semibold text-[hsl(184,73%,61%)] transition hover:bg-[hsl(184,73%,61%)]/20 disabled:opacity-40"
+              >
+                <RefreshCcw className={cn("h-4 w-4", dbIngesting && "animate-spin")} />
+                {dbIngesting ? "Pulling…" : "Pull now"}
+              </button>
+              {dbIngestResult && (
+                <div className={cn(
+                  "mt-4 rounded-2xl border px-4 py-3 text-[0.8rem]",
+                  dbIngestResult.ok
+                    ? "border-emerald-500/20 bg-emerald-500/8 text-emerald-300"
+                    : "border-red-500/20 bg-red-500/8 text-red-300"
+                )}>
+                  {dbIngestResult.ok
+                    ? `Ingested ${dbIngestResult.rowsIngested} rows for ${dbIngestResult.tenantsUpdated?.join(", ")}`
+                    : dbIngestResult.error}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Ingest endpoint reference */}
+          <div className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6">
+            <div className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
+              Cron / n8n ingest endpoint
+            </div>
+            <p className="mb-4 text-[0.8rem] leading-6 text-white/45">
+              Call this from a Vercel Cron, n8n schedule, or Databricks job trigger to keep signals fresh.
+            </p>
+            <pre className="overflow-x-auto rounded-2xl border border-white/8 bg-[hsl(214,55%,3%)] px-5 py-4 text-[0.75rem] leading-6 text-[hsl(184,73%,61%)]">
+{`# Pull all tenants (run hourly)
+curl -X POST ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/integrations/databricks/ingest
+
+# Pull a specific tenant
+curl -X POST ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/integrations/databricks/ingest?tenant=acme-retail`}
+            </pre>
           </div>
         </div>
       )}

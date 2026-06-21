@@ -24,7 +24,8 @@ import {
   type AutomationRule,
   type TenantKPIs,
 } from "@/lib/tenant-utils";
-import { buildTenantRiskSnapshot } from "@/lib/risk-signals";
+import { buildTenantRiskSnapshot, buildTenantRiskSnapshotFromDatabricks } from "@/lib/risk-signals";
+import { getDatabricksRiskCache } from "@/lib/databricks-risk-cache";
 import { tenantSeeds } from "@/lib/tenant-seeds";
 
 // ─── Tenant registry ─────────────────────────────────────────────────────────
@@ -422,6 +423,14 @@ export async function getTenantLogisticManagement(tenantSlug: string) {
 // ─── Risk intelligence ───────────────────────────────────────────────────────
 
 export async function getTenantRiskSignals(tenantSlug: string) {
+  // Prefer Databricks-scored data when the ingest cache is warm
+  const databricksRows = getDatabricksRiskCache(tenantSlug);
+  if (databricksRows && databricksRows.length > 0) {
+    const tenant = await getTenantBySlug(tenantSlug);
+    return buildTenantRiskSnapshotFromDatabricks(tenant?.name ?? tenantSlug, databricksRows);
+  }
+
+  // Fall back to local heuristic scorer
   const [tenant, kpis, inventory, orders, suppliers, logistics] = await Promise.all([
     getTenantBySlug(tenantSlug),
     getTenantKPIs(tenantSlug),
