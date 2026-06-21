@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { generateNodePrediction, riskColour } from "@/lib/ai-predictions";
 import { useCanvasEdit } from "@/lib/canvas-context";
+import type { NodeRiskOverlay } from "@/lib/canvas-risk";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ export type CanvasNodeData = {
   owner: string;
   description: string;
   location: string;
+  liveRisk?: NodeRiskOverlay;
 };
 
 // ─── Per-type stat configs ────────────────────────────────────────────────────
@@ -94,7 +96,7 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
   const { deleteElements } = useReactFlow();
   const canvasEdit = useCanvasEdit();
 
-  const { label, owner, location } = data as CanvasNodeData;
+  const { label, owner, location, liveRisk } = data as CanvasNodeData;
   const type = (data as CanvasNodeData).type as NodeType;
   const Icon = iconMap[type] ?? Boxes;
   const accent = accentMap[type] ?? accentMap.warehouse;
@@ -120,9 +122,12 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
 
   const hasAlert = defs.some((d, i) => isAlert(stats[i], d));
 
-  // AI risk badge
+  // Live Databricks risk takes priority over the static AI prediction
   const aiPred = useMemo(() => generateNodePrediction(nodeId ?? type, type), [nodeId, type]);
-  const rc = riskColour[aiPred.riskLevel];
+  const activeBadge = liveRisk ?? { riskLevel: aiPred.riskLevel, riskScore: aiPred.riskScore };
+  const rc = riskColour[activeBadge.riskLevel];
+  const isLiveRisk = !!liveRisk;
+  const isHighRisk = liveRisk && (liveRisk.riskLevel === "critical" || liveRisk.riskLevel === "high");
 
   // ── 3-dot menu ─────────────────────────────────────────────────────────────
   const [menuOpen, setMenuOpen] = useState(false);
@@ -166,13 +171,32 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
         "bg-[hsl(217,45%,8%)] shadow-[0_24px_64px_rgba(0,0,0,0.55)]",
         selected
           ? "border-[hsl(184,73%,61%)]/70 shadow-[0_0_0_2px_rgba(89,225,217,0.15),0_24px_64px_rgba(0,0,0,0.55)]"
-          : "border-white/10 hover:border-white/25",
-        hasAlert && !selected && "border-orange-500/30"
+          : isHighRisk && liveRisk?.riskLevel === "critical"
+            ? "border-red-500/60 shadow-[0_0_0_2px_rgba(239,68,68,0.12),0_24px_64px_rgba(0,0,0,0.55)]"
+            : isHighRisk
+              ? "border-orange-500/50 shadow-[0_0_0_2px_rgba(249,115,22,0.10),0_24px_64px_rgba(0,0,0,0.55)]"
+              : "border-white/10 hover:border-white/25",
+        !isHighRisk && hasAlert && !selected && "border-orange-500/30"
       )}
     >
-      {/* Alert pulse ring */}
-      {hasAlert && (
+      {/* Live risk pulse ring */}
+      {isHighRisk && (
+        <div className={cn(
+          "absolute inset-0 rounded-[22px] border-2 pointer-events-none transition-opacity",
+          liveRisk?.riskLevel === "critical" ? "border-red-500/30" : "border-orange-500/25",
+          pulse ? "opacity-100" : "opacity-30"
+        )} />
+      )}
+      {/* Static alert pulse ring (when no live risk) */}
+      {!isHighRisk && hasAlert && (
         <div className={cn("absolute inset-0 rounded-[22px] border-2 border-orange-500/20 transition-opacity pointer-events-none", pulse ? "opacity-100" : "opacity-0")} />
+      )}
+      {/* Databricks live indicator pill */}
+      {isLiveRisk && (
+        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 rounded-full border border-white/10 bg-[hsl(217,45%,6%)]/90 px-2 py-0.5 shadow-md backdrop-blur-sm pointer-events-none">
+          <span className={cn("h-1.5 w-1.5 rounded-full animate-pulse", liveRisk.riskLevel === "critical" ? "bg-red-500" : liveRisk.riskLevel === "high" ? "bg-orange-400" : "bg-yellow-400")} />
+          <span className="text-[8px] font-semibold uppercase tracking-[0.22em] text-white/50">Databricks</span>
+        </div>
       )}
 
       {/* Connection handles */}
@@ -197,10 +221,10 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
             {type.replace(/_/g, " ")}
           </span>
 
-          {/* AI risk badge */}
+          {/* Risk badge — live Databricks score when available, else static AI */}
           <div className={cn("flex items-center gap-1 rounded-full border px-2 py-0.5", rc.border, rc.bg)}>
-            <span className={cn("h-1.5 w-1.5 rounded-full", rc.dot)} />
-            <span className={cn("text-[9px] font-bold tabular-nums", rc.text)}>{aiPred.riskScore}</span>
+            <span className={cn("h-1.5 w-1.5 rounded-full", rc.dot, isLiveRisk && "animate-pulse")} />
+            <span className={cn("text-[9px] font-bold tabular-nums", rc.text)}>{Math.round(activeBadge.riskScore)}</span>
           </div>
 
           {/* 3-dot menu */}
@@ -251,6 +275,24 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
           </div>
         )}
       </div>
+
+      {/* Live risk summary strip (Databricks) */}
+      {liveRisk && (
+        <div className={cn(
+          "mx-4 mb-2 rounded-xl border px-3 py-2",
+          liveRisk.riskLevel === "critical" ? "border-red-500/25 bg-red-500/8" :
+          liveRisk.riskLevel === "high"     ? "border-orange-500/25 bg-orange-500/8" :
+          "border-yellow-500/20 bg-yellow-500/6"
+        )}>
+          <p className={cn("text-[10px] leading-[1.4] line-clamp-2",
+            liveRisk.riskLevel === "critical" ? "text-red-300/80" :
+            liveRisk.riskLevel === "high"     ? "text-orange-300/80" :
+            "text-yellow-300/70"
+          )}>
+            {liveRisk.summary}
+          </p>
+        </div>
+      )}
 
       {/* Live stats */}
       <div className="grid grid-cols-3 gap-1.5 px-4 pb-4">

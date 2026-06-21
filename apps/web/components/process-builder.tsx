@@ -53,6 +53,14 @@ import { Button } from "@/components/ui/button";
 import { CanvasNode } from "@/components/canvas-node";
 import { CanvasEditContext } from "@/lib/canvas-context";
 import { useSession } from "@/lib/auth-client";
+import {
+  buildNodeRiskOverlay,
+  buildEdgeRiskOverlay,
+  tenantNameToSlug,
+  RISK_EDGE_STYLE,
+  RISK_EDGE_MARKER,
+  type NodeRiskOverlay,
+} from "@/lib/canvas-risk";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -387,6 +395,8 @@ type FlowCanvasProps = {
   processNodes: ProcessNode[];
   processEdges: ProcessEdge[];
   canvasKey: string;
+  nodeRiskOverlay: Map<string, NodeRiskOverlay>;
+  edgeRiskOverlay: Map<string, NodeRiskOverlay>;
   onNodeClick: (id: string) => void;
   onNodeDragStop: (id: string, x: number, y: number) => void;
   onConnect: (from: string, to: string) => void;
@@ -401,7 +411,7 @@ type FlowCanvasProps = {
   }) => void;
 };
 
-function FlowCanvas({ processNodes, processEdges, canvasKey, onNodeClick, onNodeDragStop, onConnect, onNodesDelete, onEdgesDelete, onReady }: FlowCanvasProps) {
+function FlowCanvas({ processNodes, processEdges, canvasKey, nodeRiskOverlay, edgeRiskOverlay, onNodeClick, onNodeDragStop, onConnect, onNodesDelete, onEdgesDelete, onReady }: FlowCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState(processNodes.map(toRfNode));
   const [edges, setEdges, onEdgesChange] = useEdgesState(processEdges.map(toRfEdge));
   const { fitView } = useReactFlow();
@@ -423,6 +433,57 @@ function FlowCanvas({ processNodes, processEdges, canvasKey, onNodeClick, onNode
     const t = setTimeout(() => fitView({ padding: 0.12, duration: 500 }), 100);
     return () => clearTimeout(t);
   }, [canvasKey, fitView]);
+
+  // Apply Databricks risk overlay to nodes
+  useEffect(() => {
+    if (nodeRiskOverlay.size === 0) return;
+    setNodes((prev) =>
+      prev.map((n) => {
+        const risk = nodeRiskOverlay.get(n.id);
+        return risk
+          ? { ...n, data: { ...n.data, liveRisk: risk } }
+          : { ...n, data: { ...n.data, liveRisk: undefined } };
+      })
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodeRiskOverlay]);
+
+  // Apply Databricks risk overlay to edges (color + animate affected paths)
+  useEffect(() => {
+    setEdges((prev) =>
+      prev.map((e) => {
+        const risk = edgeRiskOverlay.get(e.id);
+        if (!risk) {
+          return {
+            ...e,
+            animated: true,
+            style: { stroke: "rgba(89,225,217,0.5)", strokeWidth: 2.5 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(89,225,217,0.9)" },
+          };
+        }
+        const style = RISK_EDGE_STYLE[risk.riskLevel];
+        const markerColor = RISK_EDGE_MARKER[risk.riskLevel];
+        return {
+          ...e,
+          animated: true,
+          style,
+          markerEnd: { type: MarkerType.ArrowClosed, color: markerColor },
+          label: `⚠ ${e.label ?? ""}`.trim(),
+          labelStyle: {
+            fill: risk.riskLevel === "critical" ? "rgba(252,165,165,0.9)" :
+                  risk.riskLevel === "high"     ? "rgba(253,186,116,0.9)" :
+                  "rgba(253,224,71,0.85)",
+            fontSize: 10,
+            fontFamily: "inherit",
+            fontWeight: 600,
+          },
+          labelBgStyle: { fill: "rgba(6,17,29,0.9)", borderRadius: "6px" },
+          labelBgPadding: [5, 3] as [number, number],
+        };
+      })
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [edgeRiskOverlay]);
 
   const handleConnect = useCallback(
     (conn: Connection) => {
@@ -517,6 +578,9 @@ export function ProcessBuilder({ defaultTenant }: { defaultTenant?: string } = {
     removeEdge: (id: string) => void;
     updateNodeData: (id: string, data: Record<string, unknown>) => void;
   } | null>(null);
+
+  const [nodeRiskOverlay, setNodeRiskOverlay] = useState<Map<string, NodeRiskOverlay>>(new Map());
+  const [edgeRiskOverlay, setEdgeRiskOverlay] = useState<Map<string, NodeRiskOverlay>>(new Map());
 
   const currentProcess = processes.find((p) => p.tenantName === selectedTenant) ?? processes[0];
   const canvasKey = currentProcess.tenantName;
@@ -630,6 +694,42 @@ export function ProcessBuilder({ defaultTenant }: { defaultTenant?: string } = {
       window.removeEventListener("resize", handleResize);
     };
   }, [clampPanelRect]);
+
+  // Fetch Databricks risk signals and build node/edge overlays
+  useEffect(() => {
+    const process = processes.find((p) => p.tenantName === selectedTenant);
+    if (!process) return;
+    const slug = tenantNameToSlug(selectedTenant);
+    let cancelled = false;
+
+    fetch(`/api/tenant/${slug}/risk-signals`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((snapshot: { signals?: { entityType: string; riskLevel: string; riskScore: number; summary: string; signalType: string }[] } | null) => {
+        if (cancelled || !snapshot?.signals) return;
+        const nodeOverlay = buildNodeRiskOverlay(snapshot.signals, process.nodes);
+        const edgeOverlay = buildEdgeRiskOverlay(nodeOverlay, process.edges);
+        setNodeRiskOverlay(nodeOverlay);
+        setEdgeRiskOverlay(edgeOverlay);
+      })
+      .catch(() => {});
+
+    // Refresh every 5 minutes
+    const interval = setInterval(() => {
+      fetch(`/api/tenant/${slug}/risk-signals`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((snapshot: { signals?: { entityType: string; riskLevel: string; riskScore: number; summary: string; signalType: string }[] } | null) => {
+          if (cancelled || !snapshot?.signals) return;
+          const nodeOverlay = buildNodeRiskOverlay(snapshot.signals, process.nodes);
+          const edgeOverlay = buildEdgeRiskOverlay(nodeOverlay, process.edges);
+          setNodeRiskOverlay(nodeOverlay);
+          setEdgeRiskOverlay(edgeOverlay);
+        })
+        .catch(() => {});
+    }, 5 * 60 * 1000);
+
+    return () => { cancelled = true; clearInterval(interval); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTenant]);
 
   // Respect ?tenant= query param to open a specific tenant's canvas
   const searchParams = useSearchParams();
@@ -845,6 +945,8 @@ export function ProcessBuilder({ defaultTenant }: { defaultTenant?: string } = {
           processNodes={currentProcess.nodes}
           processEdges={currentProcess.edges}
           canvasKey={canvasKey}
+          nodeRiskOverlay={nodeRiskOverlay}
+          edgeRiskOverlay={edgeRiskOverlay}
           onNodeClick={handleNodeClick}
           onNodeDragStop={handleNodeDragStop}
           onConnect={handleConnect}
