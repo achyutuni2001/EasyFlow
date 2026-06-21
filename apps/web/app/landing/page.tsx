@@ -21,8 +21,8 @@ const highlights = [
     icon: Globe2,
   },
   {
-    title: "Databricks risk intelligence",
-    body: "ML-scored stockout risk, supplier delay probability, and order slip forecasts flow from Databricks into the canvas and FlowGuide in real time.",
+    title: "Predictive risk intelligence",
+    body: "Stockout risk, supplier delay probability, and order slip forecasts appear live on the canvas so teams see problems before they become disruptions.",
     icon: DatabaseZap,
   },
   {
@@ -81,8 +81,8 @@ const useCases = [
     preview: <IntegrationPreview />,
   },
   {
-    title: "Databricks risk intelligence",
-    body: "Hourly ML-scored risk signals from Databricks appear live on canvas nodes and edges — stockout risk, supplier delay, order slip, shipment exceptions.",
+    title: "Predictive risk intelligence",
+    body: "ML-scored risk signals appear live on canvas nodes and edges — stockout risk, supplier delay, order slip, and shipment exceptions, before they become incidents.",
     icon: DatabaseZap,
     tone: "text-[hsl(184,73%,61%)]",
     preview: <DatabricksPreview />,
@@ -111,9 +111,9 @@ const docsLinks = [
     body: "How webhook ingestion and n8n templates create a vendor-neutral integration model around real operational events.",
   },
   {
-    title: "Databricks integration",
+    title: "Risk intelligence layer",
     href: "/docs/databricks-integration",
-    body: "How ML-scored risk signals flow from Databricks into the canvas, risk panel, and FlowGuide context.",
+    body: "How ML-scored risk signals flow into the canvas, risk panel, and FlowGuide to surface problems before they escalate.",
   },
 ];
 
@@ -158,7 +158,7 @@ export default function LandingPage() {
             </p>
             <p className="mx-auto mt-5 max-w-2xl text-[0.92rem] leading-7 text-white/50">
               A visual operating layer on top of raw enterprise supply chain data. EasyFlow turns ERP signals,
-              Databricks ML risk scores, warehouse events, and supplier issues into something teams can actually understand and act on.
+              warehouse events, order backlogs, and supplier issues into something teams can actually understand and act on.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -308,7 +308,7 @@ export default function LandingPage() {
               From operating idea to working system.
             </h2>
             <p className="mt-5 text-sm leading-7 text-white/40">
-              The current product includes the web app, typed model layer, webhook ingestion, Databricks risk intelligence pipeline,
+              The current product includes the web app, typed model layer, webhook ingestion, predictive risk intelligence pipeline,
               live canvas risk overlay, n8n integration patterns, and workflow-oriented documentation. The next stage is deeper validation in real environments.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -459,7 +459,7 @@ function DatabricksPreview() {
       <rect x="12" y="14" width="296" height="122" rx="12" fill="white" fillOpacity="0.035" stroke="white" strokeOpacity="0.08" />
       {/* Databricks → EasyFlow flow */}
       <rect x="22" y="24" width="80" height="28" rx="8" fill="white" fillOpacity="0.05" stroke="#ff9a5a" strokeOpacity="0.4" />
-      <text x="62" y="41" textAnchor="middle" fill="#ff9a5a" fontSize="9" fontWeight="700">Databricks</text>
+      <text x="62" y="41" textAnchor="middle" fill="#ff9a5a" fontSize="9" fontWeight="700">ML Engine</text>
       <line x1="102" y1="38" x2="118" y2="38" stroke="white" strokeOpacity="0.2" strokeDasharray="4 3" />
       <rect x="118" y="24" width="80" height="28" rx="8" fill="white" fillOpacity="0.05" stroke="#59e1d9" strokeOpacity="0.4" />
       <text x="158" y="41" textAnchor="middle" fill="#59e1d9" fontSize="9" fontWeight="700">risk_signal_feed</text>

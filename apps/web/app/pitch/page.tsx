@@ -61,8 +61,8 @@ const flows = [
     icon: DatabaseZap,
   },
   {
-    title: "Databricks scores the risk",
-    body: "Hourly ML jobs score stockout risk, supplier delay probability, and order slip forecasts into a structured risk signal table EasyFlow reads directly.",
+    title: "Risk is scored automatically",
+    body: "Stockout probability, supplier delay risk, and order slip forecasts are computed continuously and surfaced the moment they become actionable.",
     icon: Radar,
   },
   {
@@ -72,7 +72,7 @@ const flows = [
   },
   {
     title: "FlowGuide explains what changed",
-    body: "The AI layer uses Databricks risk signals as high-signal context to answer which supplier is causing downstream delay and what needs attention first.",
+    body: "The AI layer uses live risk scores as context to answer which supplier is causing downstream delay and what needs attention first.",
     icon: BrainCircuit,
   },
 ];
@@ -82,7 +82,7 @@ const useCases = [
   "Supplier delays mapped to downstream order risk",
   "Inventory pressure shown where action is actually taken",
   "Approvals treated as work with ownership and follow-up",
-  "Databricks ML risk scores shown live on canvas nodes and affected edges",
+  "Live risk scores on canvas nodes and affected edges — see impact before it spreads",
   "FlowGuide answers grounded in scored operational risk, not raw tables",
 ];
 
@@ -235,18 +235,18 @@ export default function PitchPage() {
                 Positioning
               </div>
               <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-slate-950 md:text-[3rem]">
-                EasyFlow does not replace ERP or Databricks. It gives teams a working surface on top of both.
+                EasyFlow does not replace the ERP. It gives teams a working surface on top of it.
               </h2>
               <p className="mt-5 text-[1rem] leading-8 text-slate-600">
-                The source systems stay intact. Databricks runs the ML scoring. EasyFlow adds the visual operating layer: live risk on every canvas node, edge-level path highlighting, workflow ownership, and AI interpretation grounded in scored signals.
+                The source systems stay intact. Risk is scored automatically in the background. EasyFlow adds the visual operating layer: live risk on every canvas node, edge-level path highlighting, workflow ownership, and AI explanation over the top.
               </p>
             </div>
             <div className="rounded-[32px] border border-slate-200 bg-[#edf3f8] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
               <div className="grid gap-4">
                 <PositioningRow icon={Factory} title="Existing stack" body="ERP, WMS, TMS, supplier portals, spreadsheets, and status updates." />
-                <PositioningRow icon={Sparkles} title="Databricks analytics" body="Batch ML scoring for stockout risk, supplier delay, order slip, and KPI aggregation — written to a structured risk signal table." />
+                <PositioningRow icon={Sparkles} title="Risk scored automatically" body="Stockout risk, supplier delay probability, and order slip forecasts are computed in the background and ready when teams need them." />
                 <PositioningRow icon={GitFork} title="EasyFlow layer" body="A visual workspace where live risk scores land on nodes and edges, approvals have owners, and exceptions have follow-up." />
-                <PositioningRow icon={BrainCircuit} title="AI benefit" body="FlowGuide uses Databricks risk signals as context — ask which supplier is creating downstream delay and get an answer grounded in scored data." />
+                <PositioningRow icon={BrainCircuit} title="AI explanation" body="FlowGuide uses live risk context to answer which supplier is creating downstream delay and what needs to happen next." />
               </div>
             </div>
           </section>
@@ -406,26 +406,25 @@ function AnimatedCanvasScreen() {
       <div className="grid gap-4 lg:grid-cols-[1fr_0.78fr]">
         <div className="rounded-[26px] border border-slate-900/8 bg-[#f8fbfd] p-4">
           <div className="text-[0.74rem] uppercase tracking-[0.18em] text-slate-400">Entity canvas</div>
-          <div className="relative mt-4 h-[23rem] overflow-hidden rounded-[24px] border border-slate-900/8 bg-[linear-gradient(180deg,#ffffff,rgba(241,245,249,0.85))]">
-            <div className="absolute left-8 top-8">
-              <LiveNode label="Supplier B" value="Delay +3d" tone="text-[hsl(25,95%,63%)]" />
-            </div>
-            <div className="absolute left-36 top-24">
+          <div className="relative mt-4 overflow-hidden rounded-[24px] border border-slate-900/8 bg-[linear-gradient(180deg,#ffffff,rgba(241,245,249,0.85))] p-5">
+            {/* Row 1 — top chain */}
+            <div className="flex items-center gap-0">
+              <LiveNode label="Supplier B" value="Delay +3d" tone="text-[hsl(25,95%,63%)]" alert />
+              <FlowArrowH />
               <LiveNode label="Warehouse ATL" value="84% cap." tone="text-[hsl(184,73%,61%)]" pulse />
+              <FlowArrowH />
+              <LiveNode label="Distribution" value="112 orders" tone="text-slate-700" />
             </div>
-            <div className="absolute left-20 top-56">
+            {/* Vertical connectors */}
+            <div className="flex items-start gap-0 pl-[calc(50%-2px)]">
+              <FlowArrowV />
+            </div>
+            {/* Row 2 — bottom chain */}
+            <div className="flex items-center gap-0 pl-[calc(33.33%-56px)]">
               <LiveNode label="Production" value="At risk" tone="text-[hsl(82,78%,71%)]" />
+              <FlowArrowH />
+              <LiveNode label="Customers" value="18 exposed" tone="text-[hsl(25,95%,63%)]" alert />
             </div>
-            <div className="absolute right-12 top-16">
-              <LiveNode label="Distribution" value="112 orders" tone="text-white" />
-            </div>
-            <div className="absolute right-16 bottom-12">
-              <LiveNode label="Customers" value="18 exposed" tone="text-[hsl(25,95%,63%)]" />
-            </div>
-            <AnimatedLink className="left-20 top-16 w-24 rotate-[24deg]" />
-            <AnimatedLink className="left-40 top-38 w-20 rotate-[40deg]" />
-            <AnimatedLink className="left-60 top-24 w-24 -rotate-[4deg]" />
-            <AnimatedLink className="right-28 top-32 w-16 rotate-[65deg]" />
           </div>
         </div>
 
@@ -531,26 +530,40 @@ function LiveNode({
   value,
   tone,
   pulse = false,
+  alert = false,
 }: {
   label: string;
   value: string;
   tone: string;
   pulse?: boolean;
+  alert?: boolean;
 }) {
   return (
-    <div className={`rounded-[20px] border border-slate-900/8 bg-white px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.08)] ${pulse ? "animate-[pulse_3s_ease-in-out_infinite]" : ""}`}>
-      <div className="text-[0.7rem] uppercase tracking-[0.18em] text-slate-400">{label}</div>
-      <div className={`mt-2 text-sm font-semibold ${tone}`}>{value}</div>
+    <div className={`shrink-0 rounded-[18px] border bg-white px-3.5 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.07)] ${alert ? "border-orange-200" : "border-slate-900/8"} ${pulse ? "animate-[pulse_3s_ease-in-out_infinite]" : ""}`}>
+      <div className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</div>
+      <div className={`mt-1.5 text-[0.82rem] font-semibold ${tone}`}>{value}</div>
     </div>
   );
 }
 
-function AnimatedLink({ className }: { className: string }) {
+function FlowArrowH() {
   return (
-    <div className={`absolute ${className}`}>
-      <div className="relative h-px bg-gradient-to-r from-white/0 via-white/14 to-white/0">
-        <div className="absolute -top-1 left-[20%] h-2.5 w-2.5 rounded-full bg-[hsl(184,73%,61%)] shadow-[0_0_12px_rgba(89,225,217,0.7)] animate-[pulse_2.8s_ease-in-out_infinite]" />
-      </div>
+    <div className="flex shrink-0 items-center px-1.5">
+      <div className="h-px w-6 bg-slate-300" />
+      <svg width="6" height="8" viewBox="0 0 6 8" className="text-slate-300" fill="currentColor">
+        <path d="M0 0L6 4L0 8Z" />
+      </svg>
+    </div>
+  );
+}
+
+function FlowArrowV() {
+  return (
+    <div className="flex flex-col items-center py-1">
+      <div className="h-5 w-px bg-slate-300" />
+      <svg width="8" height="6" viewBox="0 0 8 6" className="text-slate-300" fill="currentColor">
+        <path d="M0 0L4 6L8 0Z" />
+      </svg>
     </div>
   );
 }
