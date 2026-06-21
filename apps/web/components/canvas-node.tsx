@@ -129,6 +129,10 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
   const isLiveRisk = !!liveRisk;
   const isHighRisk = liveRisk && (liveRisk.riskLevel === "critical" || liveRisk.riskLevel === "high");
 
+  // ── Hover tooltip ──────────────────────────────────────────────────────────
+  const [hovered, setHovered] = useState(false);
+  const description = (data as CanvasNodeData & { description?: string }).description ?? "";
+
   // ── 3-dot menu ─────────────────────────────────────────────────────────────
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -166,6 +170,8 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
 
   return (
     <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className={cn(
         "group relative w-[280px] overflow-visible rounded-[22px] border transition-all duration-200 cursor-pointer",
         "bg-[hsl(217,45%,8%)] shadow-[0_24px_64px_rgba(0,0,0,0.55)]",
@@ -195,7 +201,7 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
       {isLiveRisk && (
         <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 rounded-full border border-white/10 bg-[hsl(217,45%,6%)]/90 px-2 py-0.5 shadow-md backdrop-blur-sm pointer-events-none">
           <span className={cn("h-1.5 w-1.5 rounded-full animate-pulse", liveRisk.riskLevel === "critical" ? "bg-red-500" : liveRisk.riskLevel === "high" ? "bg-orange-400" : "bg-yellow-400")} />
-          <span className="text-[8px] font-semibold uppercase tracking-[0.22em] text-white/50">Databricks</span>
+          <span className="text-[8px] font-semibold uppercase tracking-[0.22em] text-white/50">Live risk</span>
         </div>
       )}
 
@@ -317,6 +323,75 @@ export function CanvasNode({ id: nodeId, data, selected }: NodeProps) {
           );
         })}
       </div>
+
+      {/* ── Hover detail tooltip ─────────────────────────────────────────── */}
+      {hovered && !menuOpen && (
+        <div
+          data-noclick
+          className="absolute left-full top-0 z-50 ml-3 w-[300px] rounded-[20px] border border-white/12 bg-[hsl(217,45%,6%)]/95 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.7)] backdrop-blur-xl pointer-events-none"
+        >
+          {/* Header */}
+          <div className="mb-3 flex items-center gap-2">
+            <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border bg-black/25", accent.border)}>
+              <Icon className={cn("h-3.5 w-3.5", accent.text)} />
+            </div>
+            <div>
+              <div className="text-[0.82rem] font-semibold text-white leading-tight">{label}</div>
+              <div className="text-[0.68rem] text-white/40">{type.replace(/_/g, " ")} · {owner}</div>
+            </div>
+          </div>
+
+          {location && (
+            <div className="mb-3 flex items-center gap-1.5 text-[0.7rem] text-white/35">
+              <MapPin className="h-2.5 w-2.5 shrink-0" />{location}
+            </div>
+          )}
+
+          {description && (
+            <p className="mb-3 text-[0.78rem] leading-[1.5] text-white/50 border-b border-white/8 pb-3">{description}</p>
+          )}
+
+          {/* Live stats */}
+          {defs.length > 0 && (
+            <div className="mb-3 grid grid-cols-3 gap-1.5">
+              {defs.map((def, i) => {
+                const val = stats[i];
+                const alert = isAlert(val, def);
+                return (
+                  <div key={def.label} className={cn("rounded-xl py-2 px-1 text-center", alert ? "bg-orange-500/12" : "bg-white/[0.04]")}>
+                    <div className={cn("text-[11px] font-bold tabular-nums", alert ? "text-orange-400" : "text-white/85")}>
+                      {fmt(val, def.decimals ?? 0, def.unit)}
+                    </div>
+                    <div className="text-[7.5px] uppercase tracking-[0.16em] text-white/30 mt-0.5">{def.label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Risk info */}
+          {liveRisk && (
+            <div className={cn("rounded-xl border px-3 py-2.5 mb-3",
+              liveRisk.riskLevel === "critical" ? "border-red-500/25 bg-red-500/8" :
+              liveRisk.riskLevel === "high" ? "border-orange-500/25 bg-orange-500/8" :
+              "border-yellow-500/20 bg-yellow-500/6"
+            )}>
+              <div className="mb-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white/35">Risk signal</div>
+              <p className={cn("text-[0.75rem] leading-[1.5] mb-1.5",
+                liveRisk.riskLevel === "critical" ? "text-red-300" :
+                liveRisk.riskLevel === "high" ? "text-orange-300" : "text-yellow-300"
+              )}>{liveRisk.summary}</p>
+              <p className="text-[0.72rem] leading-[1.4] text-white/40">{liveRisk.recommendedAction}</p>
+            </div>
+          )}
+
+          {/* AI score */}
+          <div className="flex items-center justify-between text-[0.7rem] text-white/30">
+            <span>AI risk score</span>
+            <span className={cn("font-bold tabular-nums", rc.text)}>{Math.round(activeBadge.riskScore)} / 99</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

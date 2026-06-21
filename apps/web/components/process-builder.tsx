@@ -51,6 +51,7 @@ import { tenantSeeds } from "@/lib/tenant-seeds";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CanvasNode } from "@/components/canvas-node";
+import { CanvasEdge } from "@/components/canvas-edge";
 import { CanvasEditContext } from "@/lib/canvas-context";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -363,6 +364,7 @@ function defaultDraft(type: NodeType = "warehouse"): NodeDraft {
 }
 
 const rfNodeTypes: NodeTypes = { workflowNode: CanvasNode };
+const rfEdgeTypes = { canvasEdge: CanvasEdge };
 
 function toRfNode(n: ProcessNode): Node {
   return {
@@ -373,19 +375,19 @@ function toRfNode(n: ProcessNode): Node {
   };
 }
 
-function toRfEdge(e: ProcessEdge): Edge {
+function toRfEdge(e: ProcessEdge, nodes: ProcessNode[] = []): Edge {
+  const sourceLabel = nodes.find((n) => n.id === e.from)?.label;
+  const targetLabel = nodes.find((n) => n.id === e.to)?.label;
   return {
     id: e.id,
     source: e.from,
     target: e.to,
     label: e.label,
-    type: "smoothstep",
+    type: "canvasEdge",
     animated: true,
     markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(89,225,217,0.9)" },
     style: { stroke: "rgba(89,225,217,0.5)", strokeWidth: 2.5 },
-    labelStyle: { fill: "rgba(238,244,251,0.7)", fontSize: 11, fontFamily: "inherit" },
-    labelBgStyle: { fill: "rgba(6,17,29,0.85)", borderRadius: "6px" },
-    labelBgPadding: [6, 3] as [number, number],
+    data: { label: e.label, sourceLabel, targetLabel },
   };
 }
 
@@ -413,7 +415,7 @@ type FlowCanvasProps = {
 
 function FlowCanvas({ processNodes, processEdges, canvasKey, nodeRiskOverlay, edgeRiskOverlay, onNodeClick, onNodeDragStop, onConnect, onNodesDelete, onEdgesDelete, onReady }: FlowCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState(processNodes.map(toRfNode));
-  const [edges, setEdges, onEdgesChange] = useEdgesState(processEdges.map(toRfEdge));
+  const [edges, setEdges, onEdgesChange] = useEdgesState(processEdges.map((e) => toRfEdge(e, processNodes)));
   const { fitView } = useReactFlow();
 
   useEffect(() => {
@@ -448,17 +450,19 @@ function FlowCanvas({ processNodes, processEdges, canvasKey, nodeRiskOverlay, ed
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeRiskOverlay]);
 
-  // Apply Databricks risk overlay to edges (color + animate affected paths)
+  // Apply risk overlay to edges — color + inject risk data for hover tooltip
   useEffect(() => {
     setEdges((prev) =>
       prev.map((e) => {
         const risk = edgeRiskOverlay.get(e.id);
+        const baseData = (e.data ?? {}) as Record<string, unknown>;
         if (!risk) {
           return {
             ...e,
             animated: true,
             style: { stroke: "rgba(89,225,217,0.5)", strokeWidth: 2.5 },
             markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(89,225,217,0.9)" },
+            data: { ...baseData, riskLevel: undefined, riskScore: undefined, riskSummary: undefined, riskAction: undefined },
           };
         }
         const style = RISK_EDGE_STYLE[risk.riskLevel];
@@ -468,17 +472,13 @@ function FlowCanvas({ processNodes, processEdges, canvasKey, nodeRiskOverlay, ed
           animated: true,
           style,
           markerEnd: { type: MarkerType.ArrowClosed, color: markerColor },
-          label: `⚠ ${e.label ?? ""}`.trim(),
-          labelStyle: {
-            fill: risk.riskLevel === "critical" ? "rgba(252,165,165,0.9)" :
-                  risk.riskLevel === "high"     ? "rgba(253,186,116,0.9)" :
-                  "rgba(253,224,71,0.85)",
-            fontSize: 10,
-            fontFamily: "inherit",
-            fontWeight: 600,
+          data: {
+            ...baseData,
+            riskLevel: risk.riskLevel,
+            riskScore: risk.riskScore,
+            riskSummary: risk.summary,
+            riskAction: risk.recommendedAction,
           },
-          labelBgStyle: { fill: "rgba(6,17,29,0.9)", borderRadius: "6px" },
-          labelBgPadding: [5, 3] as [number, number],
         };
       })
     );
@@ -489,7 +489,7 @@ function FlowCanvas({ processNodes, processEdges, canvasKey, nodeRiskOverlay, ed
     (conn: Connection) => {
       if (!conn.source || !conn.target || conn.source === conn.target) return;
       const e: ProcessEdge = { id: `${conn.source}-${conn.target}-${Date.now()}`, from: conn.source, to: conn.target, label: "Transition" };
-      setEdges((prev) => rfAddEdge(toRfEdge(e), prev));
+      setEdges((prev) => rfAddEdge(toRfEdge(e, processNodes), prev));
       onConnect(conn.source, conn.target);
     },
     [setEdges, onConnect]
@@ -500,6 +500,7 @@ function FlowCanvas({ processNodes, processEdges, canvasKey, nodeRiskOverlay, ed
       nodes={nodes}
       edges={edges}
       nodeTypes={rfNodeTypes}
+      edgeTypes={rfEdgeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onNodeClick={(_, node) => onNodeClick(node.id)}

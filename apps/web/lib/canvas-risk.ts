@@ -21,6 +21,7 @@ export type NodeRiskOverlay = {
   riskScore: number;
   summary: string;
   signalType: string;
+  recommendedAction?: string;
 };
 
 type RawSignal = {
@@ -67,6 +68,7 @@ export function buildNodeRiskOverlay(
         riskScore: signal.riskScore,
         summary: signal.summary,
         signalType: signal.signalType,
+        recommendedAction: (signal as { recommendedAction?: string }).recommendedAction,
       };
       const existing = overlay.get(node.id);
       overlay.set(node.id, existing ? higher(existing, entry) : entry);
