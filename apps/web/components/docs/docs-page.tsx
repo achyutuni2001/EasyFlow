@@ -29,8 +29,8 @@ export function DocsPage({ slug }: { slug: string }) {
             </div>
           </div>
 
-          <div className="flex flex-1 gap-12 px-8 py-10 xl:px-12">
-            <article className="min-w-0 max-w-3xl flex-1">
+          <div className="flex flex-1 gap-14 px-10 py-12 xl:px-16">
+            <article className="min-w-0 max-w-4xl flex-1">
               {hasContent ? (
                 <DocRenderer content={content} />
               ) : (
@@ -130,16 +130,16 @@ function DocRenderer({ content }: { content: DocContent }) {
   return (
     <div>
       <div className="mb-10">
-        <p className="text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-[hsl(184,73%,61%)]">
+        <p className="text-[0.8rem] font-semibold uppercase tracking-[0.28em] text-[hsl(184,73%,61%)]">
           {content.section}
         </p>
         <h1
-          className="mt-3 text-4xl font-semibold tracking-tight text-white md:text-5xl"
+          className="mt-3 text-[2.6rem] font-semibold tracking-tight text-white md:text-[3.2rem]"
           style={{ fontFamily: "var(--font-brand)" }}
         >
           {content.title}
         </h1>
-        <p className="mt-4 text-base leading-7 text-white/50">{content.description}</p>
+        <p className="mt-4 text-[1rem] leading-8 text-white/50">{content.description}</p>
       </div>
 
       <div className="space-y-8">
@@ -166,7 +166,7 @@ function Block({ block }: { block: BlockDef }) {
     return (
       <h2
         id={block.id}
-        className="scroll-mt-24 pt-4 text-2xl font-semibold tracking-tight text-white"
+        className="scroll-mt-24 pt-4 text-[1.7rem] font-semibold tracking-tight text-white"
         style={{ fontFamily: "var(--font-brand)" }}
       >
         {block.text}
@@ -176,14 +176,14 @@ function Block({ block }: { block: BlockDef }) {
 
   if (block.type === "h3") {
     return (
-      <h3 id={block.id} className="scroll-mt-24 pt-2 text-lg font-semibold text-white/90">
+      <h3 id={block.id} className="scroll-mt-24 pt-2 text-[1.2rem] font-semibold text-white/90">
         {block.text}
       </h3>
     );
   }
 
   if (block.type === "p") {
-    return <p className="text-[0.92rem] leading-7 text-white/55">{block.text}</p>;
+    return <p className="text-[1rem] leading-8 text-white/60">{block.text}</p>;
   }
 
   if (block.type === "callout") {
@@ -194,7 +194,7 @@ function Block({ block }: { block: BlockDef }) {
     };
     const icons = { info: "ℹ", warning: "⚠", tip: "✦" };
     return (
-      <div className={cn("flex gap-3 rounded-2xl border px-5 py-4 text-sm leading-7", styles[block.variant])}>
+      <div className={cn("flex gap-3 rounded-2xl border px-5 py-4 text-[0.95rem] leading-7", styles[block.variant])}>
         <span className="shrink-0 text-base">{icons[block.variant]}</span>
         <span>{block.text}</span>
       </div>
@@ -228,8 +228,8 @@ function Block({ block }: { block: BlockDef }) {
               {index + 1}
             </div>
             <div className="flex-1 pt-0.5">
-              <div className="text-sm font-semibold text-white">{step.title}</div>
-              <p className="mt-1 text-[0.84rem] leading-6 text-white/45">{step.body}</p>
+              <div className="text-[0.98rem] font-semibold text-white">{step.title}</div>
+              <p className="mt-1.5 text-[0.92rem] leading-7 text-white/50">{step.body}</p>
             </div>
           </div>
         ))}
@@ -240,13 +240,13 @@ function Block({ block }: { block: BlockDef }) {
   if (block.type === "table") {
     return (
       <div className="overflow-hidden rounded-2xl border border-white/8">
-        <table className="w-full text-sm">
+        <table className="w-full text-[0.9rem]">
           <thead>
             <tr className="border-b border-white/8 bg-white/3">
               {block.headers.map((header) => (
                 <th
                   key={header}
-                  className="px-5 py-3 text-left text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/40"
+                  className="px-5 py-3.5 text-left text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-white/40"
                 >
                   {header}
                 </th>
@@ -282,7 +282,7 @@ function Block({ block }: { block: BlockDef }) {
     return (
       <ul className="space-y-2.5">
         {block.items.map((item, index) => (
-          <li key={index} className="flex items-start gap-3 text-[0.9rem] leading-6 text-white/50">
+          <li key={index} className="flex items-start gap-3 text-[1rem] leading-7 text-white/55">
             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[hsl(184,73%,61%)]/60" />
             {item}
           </li>

@@ -30,7 +30,7 @@ export function DocsSidebar({ activeSlug }: { activeSlug: string }) {
       {/* Logo */}
       <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
         <a href="/" className="flex items-center">
-          <LogoWordmark className="h-7 w-[150px]" />
+          <LogoWordmark className="h-9 w-[180px]" />
         </a>
         <button type="button" className="text-white/25 hover:text-white/50 transition">
           <ChevronDown className="h-4 w-4 rotate-90" />
