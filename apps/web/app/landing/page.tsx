@@ -199,77 +199,55 @@ export default function LandingPage() {
         </section>
 
         <section id="screens" className="mx-auto max-w-6xl px-6 py-16 md:px-10 md:py-20">
-          <div className="mb-10 max-w-3xl">
+          <div className="mb-12 max-w-3xl">
             <div className="inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-[hsl(184,73%,61%)]">
               <Workflow className="h-3 w-3" />
               Product screens
             </div>
             <h2 className="mt-4 text-[1.9rem] font-semibold tracking-tight text-white md:text-[2.4rem]">
-              Six views across the operating surface.
+              Seven views across the operating surface.
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/45">
-              The product is meant to feel like one connected operational layer, not isolated tools.
+              One connected operational layer — not isolated tools.
             </p>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-3">
-            {useCases.map((item) => (
+          <div className="flex flex-col divide-y divide-white/[0.06]">
+            {useCases.map((item, index) => (
               <div
                 key={item.title}
-                className="overflow-hidden rounded-[24px] border border-white/8 bg-slate-950/60 backdrop-blur-xl"
+                className="grid items-center gap-8 py-10 first:pt-0 last:pb-0 lg:grid-cols-[1fr_1.1fr]"
               >
-                <div className="border-b border-white/6 bg-[hsl(214,55%,4%)]">
-                  <div className="flex items-center gap-1.5 border-b border-white/6 px-3 py-2">
-                    <div className="h-2 w-2 rounded-full bg-white/10" />
-                    <div className="h-2 w-2 rounded-full bg-white/10" />
-                    <div className="h-2 w-2 rounded-full bg-white/10" />
+                {/* Text side */}
+                <div className={index % 2 === 1 ? "lg:order-2" : ""}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5`}>
+                      <item.icon className={`h-4 w-4 ${item.tone}`} />
+                    </div>
+                    <span className="text-[0.6rem] font-semibold uppercase tracking-[0.26em] text-white/25">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                   </div>
-                  <div className="px-3 py-3">
+                  <h3 className="text-[1.15rem] font-semibold tracking-tight text-white">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-white/45 max-w-md">{item.body}</p>
+                </div>
+
+                {/* Preview side */}
+                <div className={`overflow-hidden rounded-[20px] border border-white/8 bg-[hsl(214,55%,4%)] ${index % 2 === 1 ? "lg:order-1" : ""}`}>
+                  <div className="flex items-center gap-1.5 border-b border-white/6 px-3 py-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-white/10" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-white/10" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-white/10" />
+                  </div>
+                  <div className="px-4 py-4">
                     {item.preview}
                   </div>
                 </div>
-                <div className="p-5">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                    <item.icon className={`h-4.5 w-4.5 ${item.tone}`} />
-                  </div>
-                  <h3 className="text-[1rem] font-semibold tracking-tight text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-white/45">{item.body}</p>
-                </div>
               </div>
             ))}
           </div>
         </section>
 
-        <section id="use-cases" className="mx-auto max-w-6xl px-6 py-16 md:px-10 md:py-20">
-          <div className="mb-10 max-w-3xl">
-            <div className="inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-[hsl(184,73%,61%)]">
-              <Users className="h-3 w-3" />
-              Business use cases
-            </div>
-            <h2 className="mt-4 text-[1.9rem] font-semibold tracking-tight text-white md:text-[2.4rem]">
-              Real operational scenarios, not just a concept.
-            </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/45">
-              The product is aimed at the coordination layer between data and people. These are the kinds of daily supply chain situations
-              EasyFlow is designed to make visible, trackable, and faster to resolve.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {highlights.map((item) => (
-              <div
-                key={`use-${item.title}`}
-                className="rounded-[24px] border border-white/8 bg-slate-950/60 p-6 backdrop-blur-xl"
-              >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                  <item.icon className="h-4.5 w-4.5 text-[hsl(184,73%,61%)]" />
-                </div>
-                <h3 className="text-[1rem] font-semibold tracking-tight text-white">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-white/45">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
 
         <section id="how-it-works" className="mx-auto max-w-5xl px-6 py-20 md:px-10">
           <div className="mb-8 text-center">
