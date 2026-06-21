@@ -54,14 +54,15 @@ export function HomeFlow() {
               </CardContent>
             </Card>
             {index < steps.length - 1 ? (
-              <div className="flex items-center gap-4 py-1 pl-6">
-                {/* Vertical connector line + arrowhead */}
-                <div className="flex flex-col items-center">
-                  <div className="h-6 w-px bg-gradient-to-b from-[hsl(184,73%,61%)]/60 to-[hsl(184,73%,61%)]/20" />
+              <div className="flex flex-col items-center py-1">
+                <div className="h-5 w-px bg-gradient-to-b from-[hsl(184,73%,61%)]/60 to-[hsl(184,73%,61%)]/20" />
+                <div className="flex items-center gap-3">
+                  <div className="h-px w-16 bg-gradient-to-r from-transparent to-[hsl(184,73%,61%)]/30" />
                   <ArrowDown className="h-4 w-4 text-[hsl(184,73%,61%)]" strokeWidth={2.5} />
-                  <div className="h-6 w-px bg-gradient-to-b from-[hsl(184,73%,61%)]/20 to-transparent" />
+                  <div className="h-px w-16 bg-gradient-to-l from-transparent to-[hsl(184,73%,61%)]/30" />
                 </div>
-                <span className="text-[0.65rem] uppercase tracking-[0.28em] text-white/25">Flow continues</span>
+                <span className="mt-1 text-[0.6rem] uppercase tracking-[0.28em] text-white/25">Flow continues</span>
+                <div className="h-5 w-px bg-gradient-to-b from-[hsl(184,73%,61%)]/20 to-transparent" />
               </div>
             ) : null}
           </div>
