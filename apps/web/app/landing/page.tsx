@@ -283,11 +283,11 @@ export default function LandingPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {docsLinks.map((doc) => (
+              {docsLinks.map((doc, i) => (
                 <Link
                   key={doc.href}
                   href={doc.href}
-                  className="group rounded-[22px] border border-white/8 bg-white/[0.03] p-5 backdrop-blur-sm transition hover:border-white/15 hover:bg-white/[0.05]"
+                  className={`group rounded-[22px] border border-white/8 bg-white/[0.03] p-5 backdrop-blur-sm transition hover:border-white/15 hover:bg-white/[0.05]${docsLinks.length % 2 !== 0 && i === docsLinks.length - 1 ? " md:col-start-1 md:col-end-3 md:mx-auto md:w-1/2" : ""}`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
