@@ -155,10 +155,12 @@ export const DOCS_CONTENT: Record<string, DocContent> = {
         "An event-driven workflow path where inbound operational events can be accepted, normalized, queued, and handed into execution logic",
         "A tenant-scoped local operational event feed that can fire stock, shipment, approval, supplier, and purchase-order signals into the automation layer for development, demos, and workflow testing",
         "n8n workflow templates and a connector catalog that define how external ERP-style systems can feed data into EasyFlow",
+        "Databricks risk intelligence integration — SQL Statement API client, risk_signal_feed Delta table, hourly ingest endpoint, and live canvas overlay with colored edge propagation",
+        "ML-scored risk signals surfaced live on the workflow canvas — nodes show risk level, affected edges are re-colored and animated, and FlowGuide uses Databricks signals as high-signal context",
         "Prisma schemas and Zod types on the web side to create a typed model layer and cleaner future deployment paths",
         "Beginner-friendly deployment documentation, architecture pages, webhook reference material, and integration guides",
       ]},
-      { type: "callout", variant: "info", text: "The current state should be understood as an implemented open-source foundation: product UI, local architecture, typed models, webhook intake, queue-backed processing, and integration patterns are all in place, even though not every production environment has been validated yet." },
+      { type: "callout", variant: "info", text: "The current state should be understood as an implemented open-source foundation: product UI, local architecture, typed models, webhook intake, Databricks risk pipeline, queue-backed processing, and integration patterns are all in place, even though not every production environment has been validated yet." },
 
       { type: "h2", id: "future", text: "What this can become" },
       { type: "p", text: "If developed further, EasyFlow can evolve into a serious operations platform for mid-market supply chain teams, 3PLs, and companies that need more than spreadsheets but do not want a heavyweight enterprise implementation." },
@@ -405,6 +407,7 @@ export const DOCS_CONTENT: Record<string, DocContent> = {
         ["Auth", "better-auth", "Google OAuth, email/password, session management"],
         ["Messaging", "RabbitMQ", "Reliable async delivery, DLQ, management UI"],
         ["Automation", "n8n (self-hosted)", "400+ ERP integrations, visual workflows, open source"],
+        ["Analytics & ML", "Databricks (AWS us-east-2)", "Batch ML scoring for inventory risk, supplier delay, and order slip — results read via SQL Statement API"],
         ["Engine", "Pure Python", "Portable, testable, no framework coupling"],
         ["Containers", "Docker + docker compose", "One command to start everything"],
       ]},
@@ -1135,6 +1138,135 @@ curl http://localhost:8000/api/webhooks/token/your-tenant-id
         ["404 Not Found", "Tenant ID not found"],
         ["503 Service Unavailable", "Event accepted but could not be queued (RabbitMQ down)"],
       ]},
+    ],
+  },
+
+  "databricks-integration": {
+    section: "Integrations",
+    title: "Databricks Risk Intelligence",
+    description: "How ML-scored risk signals flow from Databricks into the canvas, Risk Intelligence panel, and FlowGuide context.",
+    toc: [
+      { label: "What it does", anchor: "what", level: 2 },
+      { label: "Architecture", anchor: "architecture", level: 2 },
+      { label: "The risk_signal_feed table", anchor: "table", level: 2 },
+      { label: "Five risk features", anchor: "features", level: 2 },
+      { label: "Configuration", anchor: "config", level: 2 },
+      { label: "Ingest endpoint", anchor: "ingest", level: 2 },
+      { label: "Canvas overlay", anchor: "canvas", level: 2 },
+      { label: "FlowGuide context", anchor: "flowguide", level: 2 },
+      { label: "Fallback behaviour", anchor: "fallback", level: 2 },
+    ],
+    blocks: [
+      { type: "h2", id: "what", text: "What it does" },
+      { type: "p", text: "EasyFlow's Databricks integration connects a Databricks SQL warehouse to the operational risk layer. ML scoring jobs in Databricks write structured risk signals into a Delta table. EasyFlow reads those signals hourly and surfaces them as live risk badges on canvas nodes, colored edge overlays on affected flow paths, a Risk Intelligence panel per tenant, and high-signal context for FlowGuide." },
+      { type: "callout", variant: "tip", text: "When Databricks is not configured, EasyFlow falls back to a local heuristic scorer that uses the same operational data already in the app. There is no broken state." },
+
+      { type: "h2", id: "architecture", text: "Architecture" },
+      { type: "p", text: "The integration has four components." },
+      { type: "table", headers: ["Component", "What it does"], rows: [
+        ["Databricks ML notebook", "Hourly job that scores inventory, orders, suppliers, and shipments and writes results to easyflow.risk_signal_feed"],
+        ["lib/databricks.ts", "SQL Statement API client — PAT auth, execute statement, async polling"],
+        ["lib/databricks-risk-cache.ts", "In-process TTL cache (2h) that holds scored rows between ingest calls"],
+        ["/api/integrations/databricks/ingest", "POST endpoint — pulls risk_signal_feed from Databricks and warms the cache"],
+        ["lib/canvas-risk.ts", "Maps signals to canvas node types and propagates risk along affected edges"],
+      ]},
+      { type: "p", text: "Data flows like this:" },
+      { type: "code", lang: "text", code: `Operational data (ERP / events)
+   ↓
+Databricks ML scoring notebook (hourly)
+   ↓
+easyflow.risk_signal_feed (Delta table)
+   ↓
+POST /api/integrations/databricks/ingest
+   ↓
+In-process risk cache (2h TTL)
+   ↓
+Canvas nodes  ·  Edge overlay  ·  Risk Intelligence panel  ·  FlowGuide` },
+
+      { type: "h2", id: "table", text: "The risk_signal_feed table" },
+      { type: "p", text: "All risk signals share a common schema. Your Databricks ML jobs write rows here; EasyFlow reads them." },
+      { type: "code", lang: "sql", code: `CREATE TABLE IF NOT EXISTS easyflow.risk_signal_feed (
+  tenant             STRING    NOT NULL,  -- EasyFlow tenant slug
+  entity_type        STRING    NOT NULL,  -- inventory_sku | order | supplier | shipment
+  entity_id          STRING    NOT NULL,
+  entity_label       STRING,
+  signal_type        STRING    NOT NULL,  -- stockout_risk | order_slip_risk | ...
+  risk_level         STRING    NOT NULL,  -- low | medium | high | critical
+  risk_score         DOUBLE    NOT NULL,  -- 0–99
+  summary            STRING,
+  recommended_action STRING,
+  predicted_impact   STRING,
+  metric_coverage    STRING,
+  metric_fill_rate   STRING,
+  metric_lead_time   STRING,
+  computed_at        TIMESTAMP NOT NULL
+)
+USING DELTA
+PARTITIONED BY (tenant);` },
+      { type: "callout", variant: "info", text: "The full DDL is in docs/databricks/risk_signal_feed.sql. A synthetic data notebook for demos is in docs/databricks/easyflow_risk_scorer.py — it generates realistic scored rows for all five EasyFlow tenants and can be scheduled hourly." },
+
+      { type: "h2", id: "features", text: "Five risk features" },
+      { type: "table", headers: ["Feature", "entity_type", "What Databricks scores", "What EasyFlow shows"], rows: [
+        ["Inventory risk forecasting", "inventory_sku", "Stockout risk, days of coverage, replenishment urgency", "Risk badge on raw_material / inventory_control nodes, stockout summary in risk panel"],
+        ["Supplier delay / SLA scoring", "supplier", "Lead-time variability, fill rate, delay history, region instability", "Risk badge on supplier nodes, delay probability in risk panel"],
+        ["Order / shipment delay prediction", "order / shipment", "Open orders likely to miss SLA, shipment exception risk", "Risk badge on procurement / dispatch nodes, at-risk order count in risk panel"],
+        ["Operations KPI layer", "overview", "Warehouse utilisation, on-time delivery, approval backlog", "KPI context in risk panel and FlowGuide answers"],
+        ["AI-ready risk table for FlowGuide", "all", "Daily or hourly scored table with top operational risks and explanation factors", "FlowGuide uses this as high-signal context instead of raw operational tables"],
+      ]},
+
+      { type: "h2", id: "config", text: "Configuration" },
+      { type: "p", text: "Add three environment variables to apps/web/.env.local:" },
+      { type: "code", lang: "env", code: `DATABRICKS_HOST=https://dbc-xxxxxxxx-xxxx.cloud.databricks.com
+DATABRICKS_TOKEN=dapi...
+DATABRICKS_WAREHOUSE_ID=abc123def456
+
+# Optional — defaults shown
+DATABRICKS_CATALOG=hive_metastore
+DATABRICKS_SCHEMA=easyflow` },
+      { type: "callout", variant: "tip", text: "Go to Integrations → Databricks in the app to check config status and run a live test connection. The Test connection button runs SELECT 1 against your SQL warehouse." },
+
+      { type: "h2", id: "ingest", text: "Ingest endpoint" },
+      { type: "p", text: "Call this endpoint to pull the latest risk signals from Databricks into EasyFlow. In production, schedule it with a Vercel Cron or n8n trigger to run every hour." },
+      { type: "code", lang: "bash", code: `# Pull all tenants
+curl -X POST https://your-easyflow.com/api/integrations/databricks/ingest
+
+# Pull a specific tenant only
+curl -X POST https://your-easyflow.com/api/integrations/databricks/ingest?tenant=acme-retail` },
+      { type: "table", headers: ["Response field", "What it means"], rows: [
+        ["ok", "true if the pull succeeded"],
+        ["rowsIngested", "Number of risk signal rows pulled from Databricks"],
+        ["tenantsUpdated", "List of tenant slugs whose cache was updated"],
+      ]},
+
+      { type: "h2", id: "canvas", text: "Canvas overlay" },
+      { type: "p", text: "Once the cache is warm, the workflow canvas reads risk signals automatically and overlays them on the relevant nodes and edges." },
+      { type: "table", headers: ["Databricks entity_type", "Canvas node type affected"], rows: [
+        ["supplier", "Supplier nodes"],
+        ["inventory_sku", "Raw Material + Inventory Control nodes"],
+        ["order", "Procurement nodes"],
+        ["shipment", "Dispatch nodes"],
+        ["overview", "Warehouse nodes"],
+      ]},
+      { type: "list", items: [
+        "Critical risk — red border glow, pulsing Databricks pill, inline summary strip",
+        "High risk — orange border glow, pulsing risk badge",
+        "Medium risk — yellow badge, no border glow",
+        "Affected edges — re-colored red / orange / yellow with ⚠ warning label, animated stroke",
+        "Canvas refreshes risk signals every 5 minutes automatically",
+      ]},
+
+      { type: "h2", id: "flowguide", text: "FlowGuide context" },
+      { type: "p", text: "FlowGuide (the AI assistant) automatically uses the latest Databricks risk signals as high-signal context when answering questions. You can ask:" },
+      { type: "list", items: [
+        "Which SKUs are likely to stock out this week?",
+        "Which supplier is most likely to cause a disruption next?",
+        "Which orders are likely to slip their SLA?",
+        "What are the top operational risks right now?",
+      ]},
+      { type: "callout", variant: "info", text: "When Databricks data is present, FlowGuide answers are grounded in ML-scored risk rather than raw operational tables, which significantly improves answer quality and specificity." },
+
+      { type: "h2", id: "fallback", text: "Fallback behaviour" },
+      { type: "p", text: "If Databricks is not configured or the ingest cache is cold, EasyFlow automatically falls back to the local heuristic risk scorer. The local scorer uses the same inventory, order, supplier, and shipment data already in the app and produces risk signals in an identical format. The canvas and FlowGuide work identically in both modes — the only difference is the data source and the provider field in the snapshot (local-heuristic vs databricks)." },
     ],
   },
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ArrowRight, BellRing, Boxes, FileText, Globe2, ShieldCheck, TrendingUp, Truck, Users, Waypoints, Workflow, Zap,
+  ArrowRight, BellRing, Boxes, FileText, Globe2, ShieldCheck, TrendingUp, Truck, Users, Waypoints, Workflow, Zap, DatabaseZap,
 } from "lucide-react";
 
 import { HomeFlow } from "@/components/home-flow";
@@ -19,6 +19,11 @@ const highlights = [
     title: "ERP-adjacent by design",
     body: "EasyFlow is built to sit on top of existing operational systems through webhooks and n8n-based integration patterns.",
     icon: Globe2,
+  },
+  {
+    title: "Databricks risk intelligence",
+    body: "ML-scored stockout risk, supplier delay probability, and order slip forecasts flow from Databricks into the canvas and FlowGuide in real time.",
+    icon: DatabaseZap,
   },
   {
     title: "Operational visibility",
@@ -75,6 +80,13 @@ const useCases = [
     tone: "text-[hsl(25,95%,63%)]",
     preview: <IntegrationPreview />,
   },
+  {
+    title: "Databricks risk intelligence",
+    body: "Hourly ML-scored risk signals from Databricks appear live on canvas nodes and edges — stockout risk, supplier delay, order slip, shipment exceptions.",
+    icon: DatabaseZap,
+    tone: "text-[hsl(184,73%,61%)]",
+    preview: <DatabricksPreview />,
+  },
 ];
 
 const docsLinks = [
@@ -98,6 +110,11 @@ const docsLinks = [
     href: "/docs/connect-erp",
     body: "How webhook ingestion and n8n templates create a vendor-neutral integration model around real operational events.",
   },
+  {
+    title: "Databricks integration",
+    href: "/docs/databricks-integration",
+    body: "How ML-scored risk signals flow from Databricks into the canvas, risk panel, and FlowGuide context.",
+  },
 ];
 
 export default function LandingPage() {
@@ -119,8 +136,8 @@ export default function LandingPage() {
       <PublicSiteHeader variant="dark" current="landing" />
 
       <main className="relative z-10">
-        <section id="idea" className="relative mx-auto min-h-[calc(100svh-73px)] max-w-6xl overflow-hidden px-6 pb-10 pt-10 md:px-10 md:pb-14 md:pt-12">
-          <div className="absolute inset-0 -translate-y-10 md:-translate-y-8">
+        <section id="idea" className="relative mx-auto min-h-[calc(100svh-73px)] max-w-6xl overflow-visible px-6 pb-10 pt-10 md:px-10 md:pb-14 md:pt-12">
+          <div className="absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 -translate-y-10 md:-translate-y-8">
             <SupplyChainBg />
           </div>
           <div className="relative z-10 mx-auto flex min-h-[calc(100svh-73px-2.5rem)] max-w-3xl items-center text-center md:min-h-[calc(100svh-73px-3rem)]">
@@ -133,7 +150,7 @@ export default function LandingPage() {
               <LogoWordmark
                 centered
                 hero
-                className="h-28 w-[620px] md:h-36 md:w-[760px] lg:h-44 lg:w-[920px]"
+                className="h-20 w-[480px] md:h-28 md:w-[600px] lg:h-32 lg:w-[720px]"
               />
             </div>
             <p className="mt-4 text-[0.74rem] font-medium uppercase tracking-[0.17em] text-white/30 md:text-[0.8rem]">
@@ -141,7 +158,7 @@ export default function LandingPage() {
             </p>
             <p className="mx-auto mt-5 max-w-2xl text-[0.92rem] leading-7 text-white/50">
               A visual operating layer on top of raw enterprise supply chain data. EasyFlow turns ERP signals,
-              warehouse events, order backlogs, and supplier issues into something teams can actually understand and act on.
+              Databricks ML risk scores, warehouse events, and supplier issues into something teams can actually understand and act on.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -313,8 +330,8 @@ export default function LandingPage() {
               From operating idea to working system.
             </h2>
             <p className="mt-5 text-sm leading-7 text-white/40">
-              The current product already includes the web app, typed model layer, webhook ingestion, queue-backed local architecture,
-              n8n integration patterns, and workflow-oriented documentation. The next stage is deeper validation in real environments.
+              The current product includes the web app, typed model layer, webhook ingestion, Databricks risk intelligence pipeline,
+              live canvas risk overlay, n8n integration patterns, and workflow-oriented documentation. The next stage is deeper validation in real environments.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -454,6 +471,36 @@ function IntegrationPreview() {
       <line x1="96" y1="73" x2="124" y2="73" stroke="white" strokeOpacity="0.18" strokeDasharray="5 4" />
       <line x1="196" y1="73" x2="224" y2="73" stroke="white" strokeOpacity="0.18" strokeDasharray="5 4" />
       <text x="24" y="116" fill="white" fillOpacity="0.4" fontSize="9">Webhook event pipeline · locally testable · customer credentials required for production validation</text>
+    </svg>
+  );
+}
+
+function DatabricksPreview() {
+  return (
+    <svg viewBox="0 0 320 150" className="w-full" style={{ height: 150 }}>
+      <rect x="12" y="14" width="296" height="122" rx="12" fill="white" fillOpacity="0.035" stroke="white" strokeOpacity="0.08" />
+      {/* Databricks → EasyFlow flow */}
+      <rect x="22" y="24" width="80" height="28" rx="8" fill="white" fillOpacity="0.05" stroke="#ff9a5a" strokeOpacity="0.4" />
+      <text x="62" y="41" textAnchor="middle" fill="#ff9a5a" fontSize="9" fontWeight="700">Databricks</text>
+      <line x1="102" y1="38" x2="118" y2="38" stroke="white" strokeOpacity="0.2" strokeDasharray="4 3" />
+      <rect x="118" y="24" width="80" height="28" rx="8" fill="white" fillOpacity="0.05" stroke="#59e1d9" strokeOpacity="0.4" />
+      <text x="158" y="41" textAnchor="middle" fill="#59e1d9" fontSize="9" fontWeight="700">risk_signal_feed</text>
+      <line x1="198" y1="38" x2="214" y2="38" stroke="white" strokeOpacity="0.2" strokeDasharray="4 3" />
+      <rect x="214" y="24" width="80" height="28" rx="8" fill="white" fillOpacity="0.05" stroke="#82d949" strokeOpacity="0.4" />
+      <text x="254" y="41" textAnchor="middle" fill="#82d949" fontSize="9" fontWeight="700">Canvas + AI</text>
+      {/* Risk signal rows */}
+      {[
+        { y: 72,  label: "SKU-4800  Stockout risk",    score: "94", color: "#ef4444" },
+        { y: 92,  label: "Supplier Alpha  Delay risk",  score: "88", color: "#f97316" },
+        { y: 112, label: "ORD-2204  Slip risk",         score: "76", color: "#eab308" },
+      ].map((row) => (
+        <g key={row.y}>
+          <rect x="22" y={row.y - 10} width="276" height="18" rx="7" fill="white" fillOpacity="0.04" />
+          <circle cx="34" cy={row.y} r="4" fill={row.color} fillOpacity="0.85" />
+          <text x="44" y={row.y + 4} fill="white" fillOpacity="0.65" fontSize="9">{row.label}</text>
+          <text x="286" y={row.y + 4} textAnchor="end" fill={row.color} fontSize="9" fontWeight="700">{row.score}</text>
+        </g>
+      ))}
     </svg>
   );
 }

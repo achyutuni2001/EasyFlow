@@ -49,9 +49,10 @@ export const docsNav: DocSection[] = [
   {
     title: "Integrations",
     pages: [
-      { slug: "connect-erp",       title: "Connecting Your ERP",        description: "Webhook- and n8n-based ERP integration architecture for self-hosted deployments." },
-      { slug: "connectors",        title: "Available Connectors",       description: "What connector pathways, templates, and source mappings exist so far." },
-      { slug: "webhook-reference", title: "Webhook Reference",          description: "All event types, headers, and payload formats." },
+      { slug: "connect-erp",            title: "Connecting Your ERP",        description: "Webhook- and n8n-based ERP integration architecture for self-hosted deployments." },
+      { slug: "connectors",             title: "Available Connectors",       description: "What connector pathways, templates, and source mappings exist so far." },
+      { slug: "webhook-reference",      title: "Webhook Reference",          description: "All event types, headers, and payload formats." },
+      { slug: "databricks-integration", title: "Databricks Risk Intelligence", description: "How ML-scored risk signals flow from Databricks into the canvas, risk panel, and FlowGuide." },
     ],
   },
   {

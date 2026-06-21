@@ -61,13 +61,18 @@ const flows = [
     icon: DatabaseZap,
   },
   {
+    title: "Databricks scores the risk",
+    body: "Hourly ML jobs score stockout risk, supplier delay probability, and order slip forecasts into a structured risk signal table EasyFlow reads directly.",
+    icon: Radar,
+  },
+  {
     title: "EasyFlow becomes the operating surface",
-    body: "Warehouses, suppliers, products, inventory, and orders become connected business entities instead of scattered records.",
+    body: "Warehouses, suppliers, products, inventory, and orders become connected business entities with live risk visible on every node and edge.",
     icon: GitFork,
   },
   {
     title: "FlowGuide explains what changed",
-    body: "The AI layer turns raw operational movement into guidance, risk visibility, and next-step recommendations.",
+    body: "The AI layer uses Databricks risk signals as high-signal context to answer which supplier is causing downstream delay and what needs attention first.",
     icon: BrainCircuit,
   },
 ];
@@ -77,33 +82,35 @@ const useCases = [
   "Supplier delays mapped to downstream order risk",
   "Inventory pressure shown where action is actually taken",
   "Approvals treated as work with ownership and follow-up",
+  "Databricks ML risk scores shown live on canvas nodes and affected edges",
+  "FlowGuide answers grounded in scored operational risk, not raw tables",
 ];
 
 export default function PitchPage() {
   return (
-    <div className="min-h-screen overflow-hidden bg-[#07111e] text-white">
+    <div className="min-h-screen overflow-hidden bg-[#f6f9fc] text-slate-950">
       <div
         aria-hidden
         className="fixed inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(120,170,205,0.075) 1px, transparent 1px), linear-gradient(90deg, rgba(120,170,205,0.075) 1px, transparent 1px)",
+            "linear-gradient(rgba(148,163,184,0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.16) 1px, transparent 1px)",
           backgroundSize: "88px 88px",
         }}
       />
       <div
         aria-hidden
-        className="fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(80,220,245,0.12),transparent_22%),radial-gradient(circle_at_88%_18%,rgba(141,245,224,0.09),transparent_18%),radial-gradient(circle_at_50%_100%,rgba(80,220,245,0.06),transparent_28%)]"
+        className="fixed inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(89,225,217,0.12),transparent_24%),radial-gradient(circle_at_84%_16%,rgba(59,130,246,0.08),transparent_20%),radial-gradient(circle_at_50%_100%,rgba(148,163,184,0.08),transparent_32%)]"
       />
       <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-[18%] top-[-8%] h-[54rem] w-[20rem] rotate-[32deg] bg-[linear-gradient(180deg,rgba(56,189,248,0.16),rgba(14,165,233,0.02))] blur-[22px] animate-[pitchBeam_18s_linear_infinite]" />
-        <div className="absolute left-[28%] top-[-16%] h-[60rem] w-[16rem] rotate-[32deg] bg-[linear-gradient(180deg,rgba(96,165,250,0.14),rgba(30,64,175,0.01))] blur-[26px] animate-[pitchBeam_24s_linear_infinite_reverse]" />
-        <div className="absolute right-[8%] top-[-10%] h-[58rem] w-[18rem] rotate-[32deg] bg-[linear-gradient(180deg,rgba(34,211,238,0.14),rgba(8,47,73,0.01))] blur-[24px] animate-[pitchBeam_20s_linear_infinite]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,16,0.24),rgba(3,8,16,0.58))]" />
+        <div className="absolute -left-[18%] top-[-8%] h-[54rem] w-[20rem] rotate-[32deg] bg-[linear-gradient(180deg,rgba(89,225,217,0.14),rgba(255,255,255,0))] blur-[22px] animate-[pitchBeam_18s_linear_infinite]" />
+        <div className="absolute left-[28%] top-[-16%] h-[60rem] w-[16rem] rotate-[32deg] bg-[linear-gradient(180deg,rgba(59,130,246,0.1),rgba(255,255,255,0))] blur-[26px] animate-[pitchBeam_24s_linear_infinite_reverse]" />
+        <div className="absolute right-[8%] top-[-10%] h-[58rem] w-[18rem] rotate-[32deg] bg-[linear-gradient(180deg,rgba(125,211,252,0.12),rgba(255,255,255,0))] blur-[24px] animate-[pitchBeam_20s_linear_infinite]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(248,250,252,0.78))]" />
       </div>
 
       <div className="relative z-10">
-        <PublicSiteHeader variant="dark" current="pitch" />
+        <PublicSiteHeader variant="light" current="pitch" />
 
         <main className="px-6 pb-24 pt-10 md:px-10">
           <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
@@ -157,18 +164,18 @@ export default function PitchPage() {
 
           <section className="mx-auto mt-20 grid max-w-7xl gap-8 lg:grid-cols-[0.84fr_1.16fr]">
             <div className="max-w-xl">
-              <div className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-white/45">
+              <div className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-slate-500">
                 The product
               </div>
-              <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-white md:text-[3rem]">
+              <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-slate-950 md:text-[3rem]">
                 EasyFlow becomes the visual operating layer above raw enterprise systems.
               </h2>
-              <p className="mt-5 text-[1rem] leading-8 text-white/68">
+              <p className="mt-5 text-[1rem] leading-8 text-slate-600">
                 It does not try to replace the system of record. It makes suppliers, warehouses, products, inventory, approvals, and orders legible to the people running operations.
               </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {flows.map((item) => (
                 <div
                   key={item.title}
@@ -187,18 +194,18 @@ export default function PitchPage() {
           <section className="mx-auto mt-20 grid max-w-7xl gap-10 lg:grid-cols-[1fr_0.92fr] lg:items-start">
             <AnimatedCanvasScreen />
             <div className="max-w-xl">
-              <div className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-white/45">
+              <div className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-slate-500">
                 What the user sees
               </div>
-              <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-white md:text-[3rem]">
+              <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-slate-950 md:text-[3rem]">
                 A live canvas where every node is a business entity.
               </h2>
-              <p className="mt-5 text-[1rem] leading-8 text-white/68">
+              <p className="mt-5 text-[1rem] leading-8 text-slate-600">
                 Not a process diagram. Not a static dashboard. A working view where warehouse pressure, supplier risk, order exposure, approvals, and AI explanation all sit on one surface.
               </p>
               <ul className="mt-6 space-y-3">
                 {useCases.map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-[0.96rem] leading-7 text-white/66">
+                  <li key={item} className="flex items-start gap-3 text-[0.96rem] leading-7 text-slate-600">
                     <span className="mt-2 h-2 w-2 rounded-full bg-[hsl(184,73%,61%)]" />
                     <span>{item}</span>
                   </li>
@@ -209,13 +216,13 @@ export default function PitchPage() {
 
           <section className="mx-auto mt-20 grid max-w-7xl gap-10 lg:grid-cols-[0.92fr_1fr] lg:items-center">
             <div className="max-w-xl">
-              <div className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-white/45">
+              <div className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-slate-500">
                 AI layer
               </div>
-              <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-white md:text-[3rem]">
+              <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-slate-950 md:text-[3rem]">
                 FlowGuide turns operational movement into explanation and next actions.
               </h2>
-              <p className="mt-5 text-[1rem] leading-8 text-white/68">
+              <p className="mt-5 text-[1rem] leading-8 text-slate-600">
                 Teams can ask why inventory is declining, which supplier is now creating downstream delay, or what needs attention first. The AI layer works on top of the same connected operating context.
               </p>
             </div>
@@ -224,21 +231,22 @@ export default function PitchPage() {
 
           <section className="mx-auto mt-20 grid max-w-7xl gap-10 lg:grid-cols-[0.88fr_1.12fr]">
             <div className="max-w-xl">
-              <div className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-white/45">
+              <div className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-slate-500">
                 Positioning
               </div>
-              <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-white md:text-[3rem]">
-                EasyFlow does not replace ERP. It gives teams a better way to work through it.
+              <h2 className="mt-5 text-[2.1rem] font-medium leading-[1.02] tracking-[-0.04em] text-slate-950 md:text-[3rem]">
+                EasyFlow does not replace ERP or Databricks. It gives teams a working surface on top of both.
               </h2>
-              <p className="mt-5 text-[1rem] leading-8 text-white/68">
-                The source systems stay intact. EasyFlow adds a usable operational surface: connected visibility, node-level intelligence, ownership, and AI interpretation over the top.
+              <p className="mt-5 text-[1rem] leading-8 text-slate-600">
+                The source systems stay intact. Databricks runs the ML scoring. EasyFlow adds the visual operating layer: live risk on every canvas node, edge-level path highlighting, workflow ownership, and AI interpretation grounded in scored signals.
               </p>
             </div>
             <div className="rounded-[32px] border border-slate-200 bg-[#edf3f8] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
               <div className="grid gap-4">
                 <PositioningRow icon={Factory} title="Existing stack" body="ERP, WMS, TMS, supplier portals, spreadsheets, and status updates." />
-                <PositioningRow icon={GitFork} title="EasyFlow layer" body="A visual workspace for relationships, operational pressure, ownership, and next actions." />
-                <PositioningRow icon={BrainCircuit} title="AI benefit" body="Ask what changed, why risk is building, and what should happen next." />
+                <PositioningRow icon={Sparkles} title="Databricks analytics" body="Batch ML scoring for stockout risk, supplier delay, order slip, and KPI aggregation — written to a structured risk signal table." />
+                <PositioningRow icon={GitFork} title="EasyFlow layer" body="A visual workspace where live risk scores land on nodes and edges, approvals have owners, and exceptions have follow-up." />
+                <PositioningRow icon={BrainCircuit} title="AI benefit" body="FlowGuide uses Databricks risk signals as context — ask which supplier is creating downstream delay and get an answer grounded in scored data." />
               </div>
             </div>
           </section>
