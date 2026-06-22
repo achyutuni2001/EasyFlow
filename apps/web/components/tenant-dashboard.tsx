@@ -9,7 +9,6 @@ import {
   Building2,
   ChevronRight,
   Factory,
-  Globe,
   MapPin,
   PackageCheck,
   PackagePlus,
@@ -24,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { tenantSeeds } from "@/lib/tenant-seeds";
 import { generateNodePrediction, riskColour } from "@/lib/ai-predictions";
 import { initialProcesses, STORAGE_KEY, type TenantProcess } from "@/components/process-builder";
+import { LogoWordmark } from "@/components/logo-wordmark";
 
 // ─── Tenant card data ─────────────────────────────────────────────────────────
 
@@ -328,10 +328,9 @@ export function TenantDashboard() {
             <div className="flex items-center gap-3">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-white hover:text-secondary transition"
+                className="inline-flex items-center text-sm font-semibold tracking-tight text-white hover:text-secondary transition"
               >
-                <Globe className="h-5 w-5 text-secondary" />
-                EasyFlow
+                <LogoWordmark className="h-8 w-[180px]" />
               </Link>
               <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white/40">Super Admin</span>
             </div>

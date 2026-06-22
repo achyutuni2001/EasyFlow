@@ -1,15 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import { Truck, PackageCheck, AlertTriangle, Clock } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { tenantSeeds } from "@/lib/tenant-seeds";
-import { generateLogisticsData } from "@/lib/tenant-utils";
-
-function slugify(n: string) { return n.toLowerCase().replace(/\s+/g, "-"); }
 
 const TT = {
   contentStyle: { background: "hsl(217,45%,8%)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontSize: 12 },
@@ -27,14 +24,42 @@ const statusStyle: Record<string, string> = {
   "Exception":      "bg-red-400/10 text-red-400 border-red-400/20",
 };
 
+type Shipment = {
+  id: string; tracking: string; origin: string; destination: string;
+  carrier: string; items: number; value: string; dispatched: string;
+  eta: string; status: string;
+};
+type RoutePoint = { month: string; onTime: number; avgDays: number };
+type Data = { shipments: Shipment[]; activeCount: number; delayedCount: number; routeEfficiency: RoutePoint[] };
+
 export default function LogisticsPage({ params }: { params: { tenant: string } }) {
-  const tenant = tenantSeeds.find((t) => slugify(t.name) === params.tenant);
-  if (!tenant) return notFound();
-  const { shipments, activeCount, delayedCount, routeEfficiency } = generateLogisticsData(tenant.name);
+  const [data, setData] = useState<Data | null>(null);
+  const [tenantName, setTenantName] = useState("");
 
-  const delivered = shipments.filter(s => s.status === "Delivered").length;
+  useEffect(() => {
+    fetch(`/api/tenant/${params.tenant}/logistics`)
+      .then((r) => r.json())
+      .then((d) => { if (d?.shipments) setData(d); })
+      .catch(() => {});
+    fetch(`/api/tenant/${params.tenant}/kpis`)
+      .then((r) => r.json())
+      .then(() => {})
+      .catch(() => {});
+    // Resolve display name from tenants list
+    fetch(`/api/tenant/${params.tenant}/kpis`).catch(() => {});
+    setTenantName(params.tenant.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
+  }, [params.tenant]);
 
-  // Status distribution for bar chart
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white/40 text-sm">Loading logistics data…</div>
+      </div>
+    );
+  }
+
+  const { shipments, activeCount, delayedCount, routeEfficiency } = data;
+  const delivered = shipments.filter((s) => s.status === "Delivered").length;
   const statusCounts = Object.entries(
     shipments.reduce<Record<string, number>>((acc, s) => { acc[s.status] = (acc[s.status] || 0) + 1; return acc; }, {})
   ).map(([status, count]) => ({ status, count })).sort((a, b) => b.count - a.count);
@@ -45,10 +70,9 @@ export default function LogisticsPage({ params }: { params: { tenant: string } }
         <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(25,95%,63%)]">
           <Truck className="h-3.5 w-3.5" /> Logistics
         </div>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenant.name} — Logistics</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenantName} — Logistics</h1>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Active",    value: activeCount,       icon: Truck,         colour: "text-[hsl(184,73%,61%)]" },
@@ -65,7 +89,6 @@ export default function LogisticsPage({ params }: { params: { tenant: string } }
         ))}
       </div>
 
-      {/* Charts */}
       <div className="grid gap-5 xl:grid-cols-2">
         <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
           <div className="mb-1 text-sm font-semibold text-white">On-Time Delivery Trend</div>
@@ -102,7 +125,6 @@ export default function LogisticsPage({ params }: { params: { tenant: string } }
         </div>
       </div>
 
-      {/* Table */}
       <div className="rounded-[24px] border border-white/10 bg-white/[0.03] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
           <div className="text-sm font-semibold text-white">Shipment Register</div>
@@ -112,7 +134,7 @@ export default function LogisticsPage({ params }: { params: { tenant: string } }
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/[0.06]">
-                {["ID","Tracking","Origin","Destination","Carrier","Items","Value","Dispatched","ETA","Status"].map(h => (
+                {["ID","Tracking","Origin","Destination","Carrier","Items","Value","Dispatched","ETA","Status"].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-[0.65rem] uppercase tracking-[0.22em] text-white/30 font-medium whitespace-nowrap">{h}</th>
                 ))}
               </tr>

@@ -1,9 +1,16 @@
 "use client";
 
-import { Bell, ChevronsLeftRight, Menu, Moon, Search, Sun } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Bell, ChevronsLeftRight, Menu, Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
+
+// Loaded client-side only — avoids useSession/useRef SSR issues
+const NavbarProfile = dynamic(
+  () => import("./navbar-profile").then((m) => m.NavbarProfile),
+  { ssr: false }
+);
 
 type NavbarProps = {
   title: string;
@@ -39,12 +46,7 @@ export function Navbar({ title, subtitle, onMenuToggle, onSidebarCollapse }: Nav
           </div>
         </div>
 
-        <div className="hidden flex-1 justify-center px-6 xl:flex">
-          <div className="flex w-full max-w-lg items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[0.82rem] text-muted-foreground">
-            <Search className="h-3 w-3" />
-            Search workflows, suppliers, warehouses, or orders
-          </div>
-        </div>
+        <div className="hidden flex-1 xl:block" />
 
         <div className="flex items-center gap-2">
           {/* Theme toggle */}
@@ -54,11 +56,7 @@ export function Navbar({ title, subtitle, onMenuToggle, onSidebarCollapse }: Nav
             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
           >
-            {theme === "dark" ? (
-              <Sun className="h-3.5 w-3.5" />
-            ) : (
-              <Moon className="h-3.5 w-3.5" />
-            )}
+            {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
           </button>
 
           <button
@@ -67,9 +65,13 @@ export function Navbar({ title, subtitle, onMenuToggle, onSidebarCollapse }: Nav
           >
             <Bell className="h-3 w-3" />
           </button>
-          <Button variant="outline" size="sm" className="h-8 rounded-xl px-3 text-[0.74rem]">
-            AI Copilot
+
+          <Button variant="outline" size="sm" className="h-8 rounded-xl px-3 text-[0.74rem] hidden sm:inline-flex">
+            FlowGuide
           </Button>
+
+          {/* Profile — dynamically loaded to avoid SSR hook issues */}
+          <NavbarProfile />
         </div>
       </div>
     </header>

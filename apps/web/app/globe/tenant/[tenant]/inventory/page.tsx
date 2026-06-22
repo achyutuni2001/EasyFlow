@@ -1,15 +1,11 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Package, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
-import { tenantSeeds } from "@/lib/tenant-seeds";
-import { generateInventoryData } from "@/lib/tenant-utils";
-
-function slugify(n: string) { return n.toLowerCase().replace(/\s+/g, "-"); }
 
 const TT = {
   contentStyle: { background: "hsl(217,45%,8%)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, fontSize: 12 },
@@ -26,32 +22,46 @@ const statusStyle: Record<string, string> = {
   "Stockout Risk": "bg-red-400/10 text-red-400 border-red-400/20",
 };
 
-function StatusBadge({ status }: { status: string }) {
-  const cls = statusStyle[status] ?? "bg-white/5 text-white/40 border-white/10";
-  return <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[0.68rem] font-medium ${cls}`}>{status}</span>;
-}
+type SKU = { sku: string; description: string; stock: number; coverage: string; reorderPoint: number; velocity: string; supplier: string; status: string };
+type CovPoint = { day: string; coverage: number; target: number };
+type CatPoint = { category: string; value: number; units: number };
+type Data = { skus: SKU[]; coverageTrend: CovPoint[]; categoryBreakdown: CatPoint[] };
 
 export default function InventoryPage({ params }: { params: { tenant: string } }) {
-  const tenant = tenantSeeds.find((t) => slugify(t.name) === params.tenant);
-  if (!tenant) return notFound();
-  const { skus, coverageTrend, categoryBreakdown } = generateInventoryData(tenant.name);
+  const [data, setData] = useState<Data | null>(null);
+  const [tenantName, setTenantName] = useState("");
 
+  useEffect(() => {
+    fetch(`/api/tenant/${params.tenant}/inventory`)
+      .then((r) => r.json())
+      .then((d) => { if (d?.skus) setData(d); })
+      .catch(() => {});
+    setTenantName(params.tenant.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
+  }, [params.tenant]);
+
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white/40 text-sm">Loading inventory data…</div>
+      </div>
+    );
+  }
+
+  const { skus, coverageTrend, categoryBreakdown } = data;
   const total    = skus.length;
-  const healthy  = skus.filter(s => ["Healthy","In Stock"].includes(s.status)).length;
-  const atRisk   = skus.filter(s => ["Low Stock","Reorder Due"].includes(s.status)).length;
-  const critical = skus.filter(s => ["Critical","Stockout Risk"].includes(s.status)).length;
+  const healthy  = skus.filter((s) => ["Healthy","In Stock"].includes(s.status)).length;
+  const atRisk   = skus.filter((s) => ["Low Stock","Reorder Due"].includes(s.status)).length;
+  const critical = skus.filter((s) => ["Critical","Stockout Risk"].includes(s.status)).length;
 
   return (
     <div className="space-y-7">
-      {/* Header */}
       <div>
         <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(184,73%,61%)]">
           <Package className="h-3.5 w-3.5" /> Inventory
         </div>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenant.name} — Inventory</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenantName} — Inventory</h1>
       </div>
 
-      {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Total SKUs", value: total,    icon: Package,       colour: "text-white" },
@@ -68,9 +78,7 @@ export default function InventoryPage({ params }: { params: { tenant: string } }
         ))}
       </div>
 
-      {/* Charts row */}
       <div className="grid gap-5 xl:grid-cols-2">
-        {/* Coverage trend */}
         <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
           <div className="mb-1 text-sm font-semibold text-white">Coverage Trend (30 days)</div>
           <div className="mb-4 text-xs text-white/40">Days of inventory coverage vs 14-day target</div>
@@ -92,7 +100,6 @@ export default function InventoryPage({ params }: { params: { tenant: string } }
           </ResponsiveContainer>
         </div>
 
-        {/* Category breakdown */}
         <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
           <div className="mb-1 text-sm font-semibold text-white">Category Breakdown</div>
           <div className="mb-4 text-xs text-white/40">Inventory value (K) by category</div>
@@ -109,7 +116,6 @@ export default function InventoryPage({ params }: { params: { tenant: string } }
         </div>
       </div>
 
-      {/* SKU table */}
       <div className="rounded-[24px] border border-white/10 bg-white/[0.03] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
           <div className="text-sm font-semibold text-white">SKU Inventory</div>
@@ -119,7 +125,7 @@ export default function InventoryPage({ params }: { params: { tenant: string } }
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/[0.06]">
-                {["SKU","Description","Stock","Coverage","Reorder Point","Velocity","Supplier","Status"].map(h => (
+                {["SKU","Description","Stock","Coverage","Reorder Point","Velocity","Supplier","Status"].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-[0.65rem] uppercase tracking-[0.22em] text-white/30 font-medium whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -136,7 +142,9 @@ export default function InventoryPage({ params }: { params: { tenant: string } }
                   <td className="px-5 py-3.5 text-white/60 whitespace-nowrap">{row.reorderPoint.toLocaleString()}</td>
                   <td className="px-5 py-3.5 text-white/60 whitespace-nowrap">{row.velocity}</td>
                   <td className="px-5 py-3.5 text-white/60 whitespace-nowrap">{row.supplier}</td>
-                  <td className="px-5 py-3.5 whitespace-nowrap"><StatusBadge status={row.status} /></td>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[0.68rem] font-medium ${statusStyle[row.status] ?? "bg-white/5 text-white/40 border-white/10"}`}>{row.status}</span>
+                  </td>
                 </tr>
               ))}
             </tbody>

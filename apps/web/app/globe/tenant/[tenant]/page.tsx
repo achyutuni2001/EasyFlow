@@ -1,23 +1,51 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   BarChart3,
   Building2,
-  Globe,
-  Link2,
   MapPin,
   Package,
   Route,
   Truck,
   Users,
   Zap,
+  ExternalLink,
 } from "lucide-react";
-import { tenantSeeds } from "@/lib/tenant-seeds";
-import { generateTenantKPIs } from "@/lib/tenant-utils";
+import { LogoMark } from "@/components/logo-mark";
+import { TenantMiniCanvas } from "@/components/tenant-mini-canvas";
+import { initialProcesses } from "@/components/process-builder";
 
-function slugify(name: string) {
-  return name.toLowerCase().replace(/\s+/g, "-");
-}
+type TenantInfo = { name: string; industry: string; headquarters: string; mode: string };
+type KPI = {
+  healthScore: number; openPOs: number; onTimeDelivery: string;
+  lowStockAlerts: number; delayedShipments: number; pendingApprovals: number;
+};
+type RiskSignal = {
+  id: string;
+  entityType: "overview" | "inventory_sku" | "order" | "supplier" | "shipment";
+  entityId: string;
+  entityLabel: string;
+  signalType: string;
+  riskLevel: "low" | "medium" | "high" | "critical";
+  riskScore: number;
+  summary: string;
+  recommendedAction: string;
+  predictedImpact: string;
+  metrics: Array<{ label: string; value: string }>;
+};
+type RiskSnapshot = {
+  provider: string;
+  generatedAt: string;
+  summary: {
+    criticalCount: number;
+    highCount: number;
+    mediumCount: number;
+    topPriority: string | null;
+  };
+  signals: RiskSignal[];
+};
 
 const modules = [
   {
@@ -58,21 +86,12 @@ const modules = [
   },
   {
     href: "automation",
-    label: "Automation",
+    label: "Automation & Integration",
     icon: Zap,
-    description: "Automation rules, triggers, and runtime workflow tasks.",
+    description: "Automation rules, integration health, triggers, and connected systems.",
     accent: "text-[hsl(45,95%,65%)]",
     bg: "bg-yellow-950/40",
     border: "border-yellow-800/30",
-  },
-  {
-    href: "integration",
-    label: "Integration",
-    icon: Link2,
-    description: "Connected systems, data sync status, and API links.",
-    accent: "text-[hsl(184,73%,61%)]",
-    bg: "bg-cyan-950/40",
-    border: "border-cyan-800/30",
   },
   {
     href: "logistic-management",
@@ -86,93 +105,257 @@ const modules = [
 ];
 
 export default function TenantOverviewPage({ params }: { params: { tenant: string } }) {
-  const tenant = tenantSeeds.find((t) => slugify(t.name) === params.tenant);
-  if (!tenant) return notFound();
-  const kpis = generateTenantKPIs(tenant.name);
+  const [tenant, setTenant] = useState<TenantInfo | null>(null);
+  const [kpis, setKpis] = useState<KPI | null>(null);
+  const [riskSnapshot, setRiskSnapshot] = useState<RiskSnapshot | null>(null);
   const base = `/globe/tenant/${params.tenant}`;
 
+  useEffect(() => {
+    const name = params.tenant.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    setTenant({ name, industry: "", headquarters: "", mode: "" });
+
+    fetch(`/api/tenant/${params.tenant}/kpis`)
+      .then((r) => r.json())
+      .then((d) => { if (d?.healthScore !== undefined) setKpis(d); })
+      .catch(() => {});
+
+    fetch(`/api/tenant/${params.tenant}/info`)
+      .then((r) => r.json())
+      .then((d) => { if (d?.name) setTenant(d); })
+      .catch(() => {});
+
+    fetch(`/api/tenant/${params.tenant}/risk-signals`)
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d?.signals)) setRiskSnapshot(d); })
+      .catch(() => {});
+  }, [params.tenant]);
+
+  const tenantName = tenant?.name ?? params.tenant.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(184,73%,61%)]">
-          <Globe className="h-3.5 w-3.5" />
+          <div className="flex h-5 w-5 items-center justify-center rounded-md border border-[hsl(184,73%,61%)]/30 bg-[hsl(184,73%,61%)]/10">
+            <LogoMark className="h-3.5 w-3.5" />
+          </div>
           Tenant Overview
         </div>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">{tenant.name}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-white/40">
-          <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" />{tenant.industry}</span>
-          <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{tenant.headquarters}</span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[0.65rem] uppercase tracking-[0.2em]">{tenant.mode}</span>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white md:text-3xl">{tenantName}</h1>
+        <div className="mt-1.5 flex flex-wrap items-center gap-4 text-sm text-white/40">
+          {tenant?.industry && <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" />{tenant.industry}</span>}
+          {tenant?.headquarters && <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{tenant.headquarters}</span>}
+          {tenant?.mode && <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[0.65rem] uppercase tracking-[0.2em]">{tenant.mode}</span>}
         </div>
       </div>
 
-      {/* KPI strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { label: "Health Score", value: `${kpis.healthScore}%`, health: kpis.healthScore >= 80 ? "good" : kpis.healthScore >= 60 ? "warning" : "critical" },
-          { label: "Open POs", value: String(kpis.openPOs), health: "neutral" },
-          { label: "On-Time Delivery", value: kpis.onTimeDelivery, health: parseInt(kpis.onTimeDelivery) >= 90 ? "good" : "warning" },
-          { label: "Low Stock Alerts", value: String(kpis.lowStockAlerts), health: kpis.lowStockAlerts > 8 ? "critical" : kpis.lowStockAlerts > 4 ? "warning" : "good" },
-        ].map(({ label, value, health }) => (
-          <div key={label} className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4">
-            <div className="text-[0.65rem] uppercase tracking-[0.28em] text-white/40">{label}</div>
-            <div className={`mt-2 text-2xl font-semibold ${health === "good" ? "text-[hsl(82,78%,71%)]" : health === "warning" ? "text-[hsl(45,95%,65%)]" : health === "critical" ? "text-red-400" : "text-white"}`}>
-              {value}
+      {/* Two-column: canvas left, KPI strip right */}
+      <div className="grid gap-5 lg:grid-cols-[1fr_1.15fr]">
+
+        {/* LEFT — Operations structure canvas */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="text-[0.65rem] uppercase tracking-[0.38em] text-white/30">Operations Flow</div>
+            <Link
+              href={`/workflows?tenant=${encodeURIComponent(tenantName)}`}
+              className="flex items-center gap-1 text-[0.65rem] uppercase tracking-[0.2em] text-[hsl(184,73%,61%)]/60 hover:text-[hsl(184,73%,61%)] transition"
+            >
+              Edit <ExternalLink className="h-3 w-3" />
+            </Link>
+          </div>
+          <div className="rounded-[24px] border border-white/[0.07] bg-white/[0.02]" style={{ height: 360, position: "relative", overflow: "hidden" }}>
+            <TenantMiniCanvas tenantName={tenantName} />
+          </div>
+        </div>
+
+        {/* RIGHT — KPI strip + Active Process */}
+        <div className="flex flex-col gap-3 self-start">
+          {/* KPI strip */}
+          {kpis ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {[
+                { label: "Health Score",       value: `${kpis.healthScore}%`,      h: kpis.healthScore >= 80 ? "good" : kpis.healthScore >= 60 ? "warn" : "bad" },
+                { label: "Open POs",           value: String(kpis.openPOs),        h: "neutral" },
+                { label: "On-Time Delivery",   value: kpis.onTimeDelivery,         h: parseInt(kpis.onTimeDelivery) >= 90 ? "good" : "warn" },
+                { label: "Low Stock Alerts",   value: String(kpis.lowStockAlerts), h: kpis.lowStockAlerts > 8 ? "bad" : kpis.lowStockAlerts > 4 ? "warn" : "good" },
+                { label: "Delayed Shipments",  value: String(kpis.delayedShipments ?? 0), h: (kpis.delayedShipments ?? 0) > 5 ? "bad" : (kpis.delayedShipments ?? 0) > 2 ? "warn" : "good" },
+                { label: "Pending Approvals",  value: String(kpis.pendingApprovals ?? 0), h: (kpis.pendingApprovals ?? 0) > 10 ? "warn" : "neutral" },
+              ].map(({ label, value, h }) => (
+                <div key={label} className="rounded-[18px] border border-white/10 bg-white/[0.04] p-3.5">
+                  <div className="text-[0.6rem] uppercase tracking-[0.24em] text-white/35">{label}</div>
+                  <div className={`mt-1.5 text-xl font-semibold ${h === "good" ? "text-[hsl(82,78%,71%)]" : h === "warn" ? "text-[hsl(45,95%,65%)]" : h === "bad" ? "text-red-400" : "text-white"}`}>
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-3.5 animate-pulse h-16" />
+              ))}
+            </div>
+          )}
+
+          {/* Active Process */}
+          <div className="rounded-[18px] border border-white/[0.07] bg-white/[0.02] px-4 py-3">
+            <div className="text-[0.65rem] uppercase tracking-[0.28em] text-white/30 mb-1">Active Process</div>
+            <div className="text-sm font-medium text-white/85">
+              {initialProcesses.find((p) => p.tenantName === tenantName)?.processName ?? "Supply Chain Flow"}
+            </div>
+            <div className="mt-2 text-[0.8rem] leading-5 text-white/45">
+              This is the operating flow the tenant works through for approvals, replenishment, handoffs, and escalation.
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href={`/workflows?tenant=${encodeURIComponent(tenantName)}`}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:bg-white/10 hover:text-white"
+              >
+                Open canvas
+              </Link>
+              <Link
+                href={`/dashboard?tenant=${encodeURIComponent(tenantName)}`}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:bg-white/10 hover:text-white"
+              >
+                View operations
+              </Link>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Module grid */}
-      <div>
-        <div className="mb-4 text-[0.65rem] uppercase tracking-[0.38em] text-white/30">Modules</div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((mod) => {
-            const Icon = mod.icon;
-            return (
-              <Link
-                key={mod.href}
-                href={`${base}/${mod.href}`}
-                className="group relative rounded-[24px] border bg-[hsl(217,45%,8%)] p-5 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
-                style={{ borderColor: "rgba(255,255,255,0.08)" }}
-              >
-                <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border ${mod.bg} ${mod.border}`}>
-                  <Icon className={`h-5 w-5 ${mod.accent}`} />
-                </div>
-                <div className="mt-4 text-base font-semibold text-white group-hover:text-white">{mod.label}</div>
-                <div className="mt-1.5 text-xs leading-5 text-white/40">{mod.description}</div>
-                <div className={`mt-4 text-[0.65rem] uppercase tracking-[0.22em] ${mod.accent} opacity-0 transition group-hover:opacity-100`}>
-                  Open →
-                </div>
-              </Link>
-            );
-          })}
         </div>
       </div>
 
-      {/* Quick workflow links */}
-      <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-6">
-        <div className="text-[0.65rem] uppercase tracking-[0.38em] text-white/30 mb-4">Workflow Tools</div>
-        <div className="flex flex-wrap gap-3">
-          <Link href={`/workflows?tenant=${encodeURIComponent(tenant.name)}`}
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white">
-            Open Process Canvas
-          </Link>
-          <Link href={`/dashboard?tenant=${encodeURIComponent(tenant.name)}`}
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white">
-            Operations Dashboard
-          </Link>
-          <Link href={`/forecasting?tenant=${encodeURIComponent(tenant.name)}`}
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white">
-            Forecasting
-          </Link>
-          <Link href={`/globe?tenant=${encodeURIComponent(tenant.name)}`}
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white">
-            View on Globe
-          </Link>
+      <div className="grid gap-5">
+        <div className="rounded-[20px] border border-white/[0.07] bg-white/[0.02] p-4">
+          <div className="mb-3">
+            <div className="text-[0.65rem] uppercase tracking-[0.38em] text-white/30">Modules</div>
+            <div className="mt-1 text-sm text-white/50">
+              Wide operational surfaces for day-to-day work across the tenant workspace.
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-[18px] border border-white/10 bg-[hsl(217,45%,8%)]">
+            <div className="grid grid-cols-[86px_1.2fr_2.1fr_88px] gap-3 border-b border-white/10 px-4 py-3 text-[0.58rem] uppercase tracking-[0.22em] text-white/35">
+              <div>Area</div>
+              <div>Module</div>
+              <div>Description</div>
+              <div className="text-right">Action</div>
+            </div>
+            <div className="divide-y divide-white/10">
+              {modules.map((mod) => {
+                const Icon = mod.icon;
+                return (
+                  <Link
+                    key={mod.href}
+                    href={`${base}/${mod.href}`}
+                    className="grid grid-cols-[86px_1.2fr_2.1fr_88px] items-center gap-3 px-4 py-4 transition hover:bg-white/[0.03]"
+                  >
+                    <div>
+                      <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border ${mod.bg} ${mod.border}`}>
+                        <Icon className={`h-4 w-4 ${mod.accent}`} />
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold text-white">{mod.label}</div>
+                    <div className="text-[0.8rem] leading-6 text-white/45">{mod.description}</div>
+                    <div className={`text-right text-[0.62rem] uppercase tracking-[0.18em] ${mod.accent}`}>
+                      Open →
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[20px] border border-white/[0.07] bg-white/[0.02] p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-[0.65rem] uppercase tracking-[0.38em] text-white/30">Risk Intelligence</div>
+              <div className="mt-1 text-sm text-white/55">
+                Prioritized operational risks shaped for downstream scoring and AI explanation.
+              </div>
+            </div>
+            {riskSnapshot ? (
+              <div className="rounded-full border border-[hsl(184,73%,61%)]/20 bg-[hsl(184,73%,61%)]/10 px-3 py-1 text-[0.6rem] uppercase tracking-[0.22em] text-[hsl(184,73%,61%)]">
+                {riskSnapshot.provider}
+              </div>
+            ) : null}
+          </div>
+
+          {riskSnapshot ? (
+            <div className="mt-4 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  { label: "Critical", value: riskSnapshot.summary.criticalCount, tone: "text-red-300" },
+                  { label: "High", value: riskSnapshot.summary.highCount, tone: "text-[hsl(25,95%,63%)]" },
+                  { label: "Medium", value: riskSnapshot.summary.mediumCount, tone: "text-[hsl(45,95%,65%)]" },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-3">
+                    <div className="text-[0.58rem] uppercase tracking-[0.22em] text-white/35">{item.label}</div>
+                    <div className={`mt-1 text-lg font-semibold ${item.tone}`}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5">
+                <div className="text-[0.58rem] uppercase tracking-[0.22em] text-white/35">Top Priority</div>
+                <div className="mt-1.5 text-sm leading-6 text-white/80">
+                  {riskSnapshot.summary.topPriority}
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-[18px] border border-white/10 bg-[hsl(217,45%,8%)]">
+                <div className="grid grid-cols-[120px_1.4fr_1.6fr_120px] gap-3 border-b border-white/10 px-4 py-3 text-[0.58rem] uppercase tracking-[0.22em] text-white/35">
+                  <div>Entity</div>
+                  <div>Signal</div>
+                  <div>Predicted Impact</div>
+                  <div className="text-right">Severity</div>
+                </div>
+                <div className="divide-y divide-white/10">
+                  {riskSnapshot.signals.slice(0, 4).map((signal) => (
+                    <div key={signal.id} className="grid grid-cols-[120px_1.4fr_1.6fr_120px] gap-3 px-4 py-4">
+                      <div className="text-[0.68rem] uppercase tracking-[0.18em] text-white/35">
+                        {signal.entityType.replace(/_/g, " ")}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-white">{signal.summary}</div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {signal.metrics.map((metric) => (
+                            <span
+                              key={`${signal.id}-${metric.label}`}
+                              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[0.68rem] text-white/55"
+                            >
+                              {metric.label}: {metric.value}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-[0.8rem] leading-6 text-white/50">{signal.predictedImpact}</div>
+                      <div className="flex items-start justify-end">
+                        <div className={`rounded-full px-2.5 py-1 text-[0.55rem] uppercase tracking-[0.18em] ${
+                          signal.riskLevel === "critical"
+                            ? "bg-red-500/15 text-red-300"
+                            : signal.riskLevel === "high"
+                              ? "bg-orange-500/15 text-[hsl(25,95%,63%)]"
+                              : "bg-yellow-500/15 text-[hsl(45,95%,65%)]"
+                        }`}>
+                          {signal.riskLevel}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="h-20 animate-pulse rounded-2xl border border-white/10 bg-white/[0.03]" />
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
     </div>
   );
 }
