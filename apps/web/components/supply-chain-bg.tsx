@@ -49,11 +49,6 @@ export function SupplyChainBg() {
           0%,100% { transform: translateY(0); }
           50% { transform: translateY(-6px); }
         }
-        @keyframes plane-1 {
-          0%   { transform: translateX(118vw) translateY(0) rotate(-7deg); }
-          50%  { transform: translateX(56vw) translateY(-12px) rotate(-3deg); }
-          100% { transform: translateX(-520px) translateY(10px) rotate(2deg); }
-        }
         /* ── Warehouse gentle bob ── */
         @keyframes wh-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
         @keyframes ship-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
@@ -77,27 +72,6 @@ export function SupplyChainBg() {
           filter: "saturate(1.16) drop-shadow(0 0 18px rgba(89,225,217,0.16))",
         }}
       >
-        {/* Plane — restored in the upper band */}
-        <svg width="108" height="42" viewBox="0 0 160 62"
-          className="absolute hidden lg:block"
-          style={{
-            top: "8%",
-            left: 0,
-            opacity: 0.42,
-            zIndex: 1,
-            animation: "plane-1 26s linear infinite",
-          }}>
-          <rect x="18" y="22" width="124" height="18" rx="9" fill="#59e1d9" />
-          <polygon points="18,22 18,40 0,31" fill="#59e1d9" />
-          <polygon points="62,22 108,0 120,22" fill="#59e1d9" opacity="0.85" />
-          <polygon points="62,40 108,62 120,40" fill="#59e1d9" opacity="0.85" />
-          <polygon points="138,22 158,4 158,22" fill="#59e1d9" opacity="0.8" />
-          <polygon points="134,22 154,15 154,22" fill="#59e1d9" opacity="0.65" />
-          <polygon points="134,40 154,47 154,40" fill="#59e1d9" opacity="0.65" />
-          <rect x="76" y="38" width="28" height="9" rx="4" fill="#59e1d9" opacity="0.7" />
-          <rect x="24" y="26" width="28" height="10" rx="4" fill="#061018" opacity="0.45" />
-        </svg>
-
         {/* ════════════════════════════════════════════════════════════════
             ZONE B — MID (20%–55% from top): Warehouses, left and right
             ════════════════════════════════════════════════════════════════ */}
@@ -190,7 +164,7 @@ export function SupplyChainBg() {
           className="absolute hidden lg:block"
           style={{
             left: 0,
-            bottom: 10,
+            bottom: 2,
             opacity: 0.8,
             animation: "ship-bob 7s ease-in-out infinite",
           }}>
@@ -271,7 +245,7 @@ export function SupplyChainBg() {
         <svg width="116" height="232" viewBox="0 0 160 320"
           className="absolute"
           style={{
-            bottom: 6,
+            bottom: 0,
             left: 76,
             opacity: 0.8,
           }}>

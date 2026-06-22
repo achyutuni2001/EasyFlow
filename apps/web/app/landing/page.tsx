@@ -142,23 +142,22 @@ export default function LandingPage() {
           </div>
           <div className="relative z-10 mx-auto flex min-h-[calc(100svh-73px-2.5rem)] max-w-3xl items-center text-center md:min-h-[calc(100svh-73px-3rem)]">
             <div className="w-full">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[hsl(184,73%,61%)]/20 bg-[hsl(184,73%,61%)]/8 px-4 py-1.5 text-[0.66rem] font-medium uppercase tracking-[0.28em] text-[hsl(184,73%,61%)]">
-              <Globe2 className="h-3 w-3" />
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(184,73%,61%)]/20 bg-[hsl(184,73%,61%)]/8 px-2.5 py-0.5 text-[0.52rem] font-medium uppercase tracking-[0.2em] text-[hsl(184,73%,61%)] md:text-[0.56rem]">
+              <Globe2 className="h-2.5 w-2.5" />
               Supply chain coordination layer
             </div>
             <div className="mt-5 flex justify-center">
               <LogoWordmark
                 centered
                 hero
-                className="h-20 w-[480px] md:h-28 md:w-[600px] lg:h-32 lg:w-[720px]"
+                className="h-[6.5rem] w-[560px] md:h-[8rem] md:w-[760px] lg:h-[9rem] lg:w-[900px]"
               />
             </div>
             <p className="mt-4 text-[0.74rem] font-medium uppercase tracking-[0.17em] text-white/30 md:text-[0.8rem]">
               Easy insights. Clear visibility. Faster decisions.
             </p>
-            <p className="mx-auto mt-5 max-w-2xl text-[0.92rem] leading-7 text-white/50">
-              A visual operating layer on top of raw enterprise supply chain data. EasyFlow turns ERP signals,
-              warehouse events, order backlogs, and supplier issues into something teams can actually understand and act on.
+            <p className="mx-auto mt-5 max-w-4xl text-[0.92rem] leading-7 text-white/50">
+              A visual operating layer for supply chain teams. Turn raw operational data into clear actions.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -176,19 +175,21 @@ export default function LandingPage() {
             </div>
           </div>
           </div>
-          <div className="absolute bottom-[74px] left-1/2 z-10 w-screen -translate-x-1/2 opacity-55 md:bottom-[78px]">
+          <div className="absolute bottom-[36px] left-1/2 z-10 w-screen max-w-none -translate-x-1/2 opacity-55 md:bottom-[42px]">
             <TruckLoader />
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-6 py-10 md:px-10 md:py-14">
-          <div className="grid gap-5 md:grid-cols-2">
-            {highlights.map((item) => (
+        <section className="mx-auto max-w-5xl px-6 py-10 md:px-10 md:py-14">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-6">
+            {highlights.map((item, index) => (
               <div
                 key={item.title}
-                className="rounded-[28px] border border-white/8 bg-slate-950/60 p-8 backdrop-blur-xl"
+                className={`rounded-[28px] border border-white/8 bg-slate-950/60 p-7 backdrop-blur-xl md:col-span-1 xl:col-span-2 ${
+                  index === 3 ? "xl:col-start-2" : ""
+                } ${index === 4 ? "xl:col-start-4" : ""}`}
               >
-                <div className="mb-5 flex h-13 w-13 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
                   <item.icon className="h-6 w-6 text-[hsl(184,73%,61%)]" />
                 </div>
                 <h2 className="text-[1.15rem] font-semibold tracking-tight text-white">{item.title}</h2>

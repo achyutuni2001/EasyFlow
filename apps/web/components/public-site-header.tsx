@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { LogoWordmark } from "@/components/logo-wordmark";
 
 type PublicSiteHeaderProps = {
@@ -14,10 +15,23 @@ export function PublicSiteHeader({
   variant = "dark",
   current = "landing",
 }: PublicSiteHeaderProps) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const isDark = variant === "dark";
   const shellClass = isDark
-    ? "border-white/8 bg-slate-950/55 text-white backdrop-blur-md"
-    : "border-slate-900/8 bg-white/90 text-slate-950 backdrop-blur-md";
+    ? scrolled
+      ? "border-white/12 bg-slate-950/84 text-white shadow-[0_12px_36px_rgba(2,8,23,0.32)] backdrop-blur-xl"
+      : "border-white/8 bg-slate-950/42 text-white backdrop-blur-md"
+    : scrolled
+      ? "border-slate-900/10 bg-white/95 text-slate-950 shadow-[0_10px_30px_rgba(15,23,42,0.1)] backdrop-blur-xl"
+      : "border-slate-900/8 bg-white/82 text-slate-950 backdrop-blur-md";
   const mutedClass = isDark ? "text-white/50 hover:text-white/85" : "text-slate-600 hover:text-slate-950";
   const buttonGhostClass = isDark
     ? "border-white/10 bg-white/5 text-white/72 hover:border-white/20 hover:bg-white/10 hover:text-white"
@@ -35,13 +49,27 @@ export function PublicSiteHeader({
   ] as const;
 
   return (
-    <header className={`sticky top-0 z-30 border-b px-6 py-4 md:px-10 ${shellClass}`}>
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+    <header className="fixed inset-x-0 top-0 z-30 px-0 py-0 md:px-0">
+      <div
+        className={`flex items-center justify-center transition-all duration-300 ${
+          scrolled ? "px-4 py-2 md:px-6" : "px-0 py-0"
+        }`}
+      >
+      <div
+        className={`mx-auto relative flex w-full items-center justify-between gap-4 border transition-all duration-300 ${
+          scrolled
+            ? "max-w-6xl rounded-[999px] px-5 py-1.5 md:px-7"
+            : "max-w-none rounded-none border-x-0 border-t-0 px-6 py-2 md:px-10"
+        } ${shellClass}`}
+      >
         <Link href="/landing" className="flex items-center">
-          <LogoWordmark className="h-12 w-[260px]" />
+          <LogoWordmark
+            className="h-[2.75rem] w-[270px] md:h-[3rem] md:w-[320px]"
+            lightSurface={!isDark}
+          />
         </Link>
 
-        <nav className="hidden items-center gap-7 text-[0.92rem] font-medium md:flex">
+        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 text-[0.85rem] font-medium md:flex">
           {navItems.map((item) => {
             const isActive = item.key === current;
             return (
@@ -67,17 +95,18 @@ export function PublicSiteHeader({
         <div className="flex items-center gap-2.5">
           <Link
             href="/globe"
-            className={`rounded-full border px-4 py-2 text-[0.82rem] font-medium transition ${buttonGhostClass}`}
+            className={`rounded-full border px-4 py-1 text-[0.78rem] font-medium transition ${buttonGhostClass}`}
           >
             Open app
           </Link>
           <Link
             href="/login"
-            className={`rounded-full px-4 py-2 text-[0.82rem] font-semibold transition ${buttonPrimaryClass}`}
+            className={`rounded-full px-4 py-1 text-[0.78rem] font-semibold transition ${buttonPrimaryClass}`}
           >
             Sign in
           </Link>
         </div>
+      </div>
       </div>
     </header>
   );
