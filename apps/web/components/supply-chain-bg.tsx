@@ -50,9 +50,9 @@ export function SupplyChainBg() {
           50% { transform: translateY(-6px); }
         }
         @keyframes plane-1 {
-          0%   { transform: translateX(108vw) translateY(0) rotate(-7deg); }
-          50%  { transform: translateX(52vw) translateY(-12px) rotate(-3deg); }
-          100% { transform: translateX(-360px) translateY(10px) rotate(2deg); }
+          0%   { transform: translateX(118vw) translateY(0) rotate(-7deg); }
+          50%  { transform: translateX(56vw) translateY(-12px) rotate(-3deg); }
+          100% { transform: translateX(-520px) translateY(10px) rotate(2deg); }
         }
         /* ── Warehouse gentle bob ── */
         @keyframes wh-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
@@ -103,10 +103,10 @@ export function SupplyChainBg() {
             ════════════════════════════════════════════════════════════════ */}
 
         {/* Warehouse LEFT + conveyor */}
-        <svg width="392" height="198" viewBox="-40 0 470 250"
+        <svg width="392" height="198" viewBox="-84 0 514 250"
           className="absolute hidden lg:block"
           style={{
-            left: "-26px",
+            left: "-44px",
             top: "18%",
             opacity: 0.85,
             zIndex: 2,

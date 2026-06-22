@@ -12,13 +12,13 @@ const GREEN  = "#82d949";
 
 export function TruckLoader() {
   return (
-    <div className="flex items-end justify-center overflow-visible">
+    <div className="flex h-[110px] w-full items-end justify-center overflow-hidden">
       <style>{`
-        /* Truck starts parked, loads, drives off right */
+        /* Truck starts parked, loads, then exits through the viewport edge. */
         @keyframes tl-truck {
           0%,  72%  { transform: translateX(0px);    opacity: 1; }
-          96%       { transform: translateX(3600px); opacity: 1; }
-          99%, 100% { transform: translateX(3600px); opacity: 0; }
+          96%       { transform: translateX(54vw); opacity: 1; }
+          99%, 100% { transform: translateX(54vw); opacity: 0; }
         }
         /* Forks lower to load */
         @keyframes tl-forks {
@@ -50,14 +50,14 @@ export function TruckLoader() {
       <svg
         width="100%"
         height="110"
-        viewBox="0 0 900 110"
+        viewBox="0 0 1400 110"
         preserveAspectRatio="xMidYMid meet"
         fill="none"
         aria-hidden
         style={{ overflow: "visible" }}
       >
         {/* ground — at very bottom */}
-        <line x1="0" y1="109" x2="900" y2="109" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+        <line x1="0" y1="109" x2="1400" y2="109" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
 
         {/* ── FORKLIFT (orange) — static, left side ─────────────── */}
         {/* body */}
