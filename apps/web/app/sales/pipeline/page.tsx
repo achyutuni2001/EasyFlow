@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { GripVertical, Plus, ArrowUpRight } from "lucide-react";
 
@@ -127,7 +127,7 @@ function Column({
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
-export default function PipelinePage() {
+function PipelinePageContent() {
   const searchParams = useSearchParams();
   const tenant = searchParams?.get("tenant") ?? "Acme Retail";
   const slug = tenant.toLowerCase().replace(/\s+/g, "-");
@@ -212,5 +212,13 @@ export default function PipelinePage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function PipelinePage() {
+  return (
+    <Suspense fallback={<AppShell title="Pipeline" subtitle="Dual Kanban — Prospects & Clients"><div /></AppShell>}>
+      <PipelinePageContent />
+    </Suspense>
   );
 }

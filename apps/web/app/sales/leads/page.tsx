@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 
@@ -22,7 +22,7 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-export default function LeadsPage() {
+function LeadsPageContent() {
   const searchParams = useSearchParams();
   const tenant = searchParams?.get("tenant") ?? "Acme Retail";
   const slug = tenant.toLowerCase().replace(/\s+/g, "-");
@@ -159,5 +159,13 @@ export default function LeadsPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function LeadsPage() {
+  return (
+    <Suspense fallback={<AppShell title="Leads" subtitle="All leads with AI scoring"><div /></AppShell>}>
+      <LeadsPageContent />
+    </Suspense>
   );
 }

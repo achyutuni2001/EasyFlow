@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -53,7 +53,7 @@ function buildStageBreakdown(slug: string) {
   ];
 }
 
-export default function SalesDashboardPage() {
+function SalesDashboardContent() {
   const searchParams = useSearchParams();
   const tenant = searchParams?.get("tenant") ?? "Acme Retail";
   const slug = tenant.toLowerCase().replace(/\s+/g, "-");
@@ -213,5 +213,13 @@ export default function SalesDashboardPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function SalesDashboardPage() {
+  return (
+    <Suspense fallback={<AppShell title="Sales" subtitle="Revenue pipeline and lead intelligence"><div /></AppShell>}>
+      <SalesDashboardContent />
+    </Suspense>
   );
 }
