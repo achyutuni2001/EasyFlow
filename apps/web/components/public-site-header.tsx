@@ -38,7 +38,7 @@ export function PublicSiteHeader({
     <header className={`sticky top-0 z-30 border-b px-6 py-4 md:px-10 ${shellClass}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <Link href="/landing" className="flex items-center">
-          <LogoWordmark className="h-8 w-[180px]" />
+          <LogoWordmark className="h-12 w-[260px]" />
         </Link>
 
         <nav className="hidden items-center gap-7 text-[0.92rem] font-medium md:flex">

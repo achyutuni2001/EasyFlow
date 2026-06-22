@@ -103,10 +103,10 @@ export function SupplyChainBg() {
             ════════════════════════════════════════════════════════════════ */}
 
         {/* Warehouse LEFT + conveyor */}
-        <svg width="372" height="198" viewBox="-24 0 454 250"
+        <svg width="392" height="198" viewBox="-40 0 470 250"
           className="absolute hidden lg:block"
           style={{
-            left: "-12px",
+            left: "-26px",
             top: "18%",
             opacity: 0.85,
             zIndex: 2,

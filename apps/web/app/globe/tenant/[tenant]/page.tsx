@@ -167,34 +167,10 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
           <div className="rounded-[24px] border border-white/[0.07] bg-white/[0.02]" style={{ height: 360, position: "relative", overflow: "hidden" }}>
             <TenantMiniCanvas tenantName={tenantName} />
           </div>
-          {/* Process info */}
-          <div className="rounded-[18px] border border-white/[0.07] bg-white/[0.02] px-4 py-3">
-            <div className="text-[0.65rem] uppercase tracking-[0.28em] text-white/30 mb-1">Active Process</div>
-            <div className="text-sm font-medium text-white/85">
-              {initialProcesses.find((p) => p.tenantName === tenantName)?.processName ?? "Supply Chain Flow"}
-            </div>
-            <div className="mt-2 text-[0.8rem] leading-5 text-white/45">
-              This is the operating flow the tenant works through for approvals, replenishment, handoffs, and escalation.
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                href={`/workflows?tenant=${encodeURIComponent(tenantName)}`}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:bg-white/10 hover:text-white"
-              >
-                Open canvas
-              </Link>
-              <Link
-                href={`/dashboard?tenant=${encodeURIComponent(tenantName)}`}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:bg-white/10 hover:text-white"
-              >
-                View operations
-              </Link>
-            </div>
-          </div>
         </div>
 
-        {/* RIGHT — KPI strip */}
-        <div className="flex flex-col gap-5">
+        {/* RIGHT — KPI strip + Active Process */}
+        <div className="flex flex-col gap-3 self-start">
           {/* KPI strip */}
           {kpis ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -222,6 +198,30 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
             </div>
           )}
 
+          {/* Active Process */}
+          <div className="rounded-[18px] border border-white/[0.07] bg-white/[0.02] px-4 py-3">
+            <div className="text-[0.65rem] uppercase tracking-[0.28em] text-white/30 mb-1">Active Process</div>
+            <div className="text-sm font-medium text-white/85">
+              {initialProcesses.find((p) => p.tenantName === tenantName)?.processName ?? "Supply Chain Flow"}
+            </div>
+            <div className="mt-2 text-[0.8rem] leading-5 text-white/45">
+              This is the operating flow the tenant works through for approvals, replenishment, handoffs, and escalation.
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href={`/workflows?tenant=${encodeURIComponent(tenantName)}`}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:bg-white/10 hover:text-white"
+              >
+                Open canvas
+              </Link>
+              <Link
+                href={`/dashboard?tenant=${encodeURIComponent(tenantName)}`}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:bg-white/10 hover:text-white"
+              >
+                View operations
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 

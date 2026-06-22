@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Bell, ChevronsLeftRight, Menu, Moon, Search, Sun } from "lucide-react";
+import { Bell, ChevronsLeftRight, Menu, Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
@@ -46,12 +46,7 @@ export function Navbar({ title, subtitle, onMenuToggle, onSidebarCollapse }: Nav
           </div>
         </div>
 
-        <div className="hidden flex-1 justify-center px-6 xl:flex">
-          <div className="flex w-full max-w-lg items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[0.82rem] text-muted-foreground">
-            <Search className="h-3 w-3" />
-            Search workflows, suppliers, warehouses, or orders
-          </div>
-        </div>
+        <div className="hidden flex-1 xl:block" />
 
         <div className="flex items-center gap-2">
           {/* Theme toggle */}

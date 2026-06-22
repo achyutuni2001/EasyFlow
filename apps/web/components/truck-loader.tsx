@@ -54,6 +54,7 @@ export function TruckLoader() {
         preserveAspectRatio="xMidYMid meet"
         fill="none"
         aria-hidden
+        style={{ overflow: "visible" }}
       >
         {/* ground — at very bottom */}
         <line x1="0" y1="109" x2="900" y2="109" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />

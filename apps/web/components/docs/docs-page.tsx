@@ -13,30 +13,38 @@ export function DocsPage({ slug }: { slug: string }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[hsl(214,55%,4%)] text-white">
-      <div className="hidden w-[288px] shrink-0 lg:flex lg:flex-col">
+      <div className="hidden w-[320px] shrink-0 lg:flex lg:flex-col">
         <DocsSidebar activeSlug={slug} />
       </div>
 
       <main className="flex flex-1 overflow-y-auto">
         <div className="flex min-h-full flex-1 flex-col">
-          <div className="sticky top-0 z-10 border-b border-white/8 bg-[hsl(214,55%,4%)]/90 px-8 py-3 backdrop-blur-xl">
-            <div className="flex items-center gap-2 text-[0.75rem] text-white/35">
+          <div className="sticky top-0 z-10 border-b border-white/8 bg-[hsl(214,55%,4%)]/90 px-8 py-3.5 backdrop-blur-xl">
+            <div className="flex items-center gap-2 text-[0.8rem] text-white/35">
               <a href="/docs/quick-start" className="hover:text-white/60 transition">
                 Docs
               </a>
-              <span>/</span>
-              <span className="text-white/65">{page?.title ?? "Page"}</span>
+              <span className="text-white/20">/</span>
+              {page && (
+                <>
+                  <span className="text-white/30">
+                    {docsNav.find((s) => s.pages.some((p) => p.slug === slug))?.title}
+                  </span>
+                  <span className="text-white/20">/</span>
+                </>
+              )}
+              <span className="text-white/70">{page?.title ?? "Page"}</span>
             </div>
           </div>
 
-          <div className="flex flex-1 gap-14 px-10 py-12 xl:px-16">
-            <article className="min-w-0 max-w-4xl flex-1">
+          <div className="flex flex-1 gap-12 px-10 py-12 xl:px-20 2xl:px-28">
+            <article className="min-w-0 max-w-3xl flex-1">
               {hasContent ? (
                 <DocRenderer content={content} />
               ) : (
                 <>
-                  <div className="mb-6">
-                    <p className="text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-[hsl(184,73%,61%)]">
+                  <div className="mb-10 border-b border-white/8 pb-10">
+                    <p className="text-[0.75rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
                       {findPage(slug)
                         ? docsNav.find((section) =>
                             section.pages.some((entry) => entry.slug === slug)
@@ -44,12 +52,12 @@ export function DocsPage({ slug }: { slug: string }) {
                         : "Docs"}
                     </p>
                     <h1
-                      className="mt-3 text-4xl font-semibold tracking-tight text-white"
+                      className="mt-3 text-4xl font-semibold tracking-tight text-white leading-tight"
                       style={{ fontFamily: "var(--font-brand)" }}
                     >
                       {page?.title ?? "Coming soon"}
                     </h1>
-                    <p className="mt-3 text-sm text-white/40">{page?.description}</p>
+                    <p className="mt-3 max-w-2xl text-[1.02rem] leading-8 text-white/45">{page?.description}</p>
                   </div>
                   <WorkInProgress eta="Next release" />
                 </>
@@ -95,28 +103,39 @@ export function DocsPage({ slug }: { slug: string }) {
               </div>
             </article>
 
-            <aside className="hidden w-52 shrink-0 xl:block">
+            <aside className="hidden w-56 shrink-0 xl:block">
               <div className="sticky top-24">
-                <div className="mb-3 flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-white/30">
-                  <span className="i-lucide-list h-3 w-3" />
-                  On this page
+                <div className="mb-3 border-l-2 border-white/10 pl-3">
+                  <div className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-white/30">
+                    On this page
+                  </div>
                 </div>
-                <nav className="space-y-1">
+                <nav className="space-y-0.5">
                   {content.toc.map((item, index) => (
                     <a
                       key={index}
                       href={`#${item.anchor}`}
                       className={cn(
-                        "block rounded-lg py-1.5 text-[0.78rem] transition-colors",
+                        "block rounded-lg py-1.5 text-[0.78rem] transition-colors hover:text-white/80",
                         item.level === 2
-                          ? "pl-3 text-white/50 hover:text-white/80"
-                          : "pl-6 text-[0.72rem] text-white/30 hover:text-white/60"
+                          ? "pl-3 text-white/50"
+                          : "pl-5 text-[0.73rem] text-white/30 hover:text-white/55"
                       )}
                     >
                       {item.label}
                     </a>
                   ))}
                 </nav>
+                <div className="mt-8 rounded-xl border border-white/8 bg-white/[0.02] p-3">
+                  <div className="text-[0.68rem] uppercase tracking-[0.2em] text-white/25 mb-2">Resources</div>
+                  <a href="https://github.com" target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 py-1 text-[0.75rem] text-white/35 hover:text-white/65 transition">
+                    → GitHub
+                  </a>
+                  <a href="/settings" className="flex items-center gap-2 py-1 text-[0.75rem] text-white/35 hover:text-white/65 transition">
+                    → Integrations
+                  </a>
+                </div>
               </div>
             </aside>
           </div>
@@ -129,20 +148,21 @@ export function DocsPage({ slug }: { slug: string }) {
 function DocRenderer({ content }: { content: DocContent }) {
   return (
     <div>
-      <div className="mb-10">
-        <p className="text-[0.8rem] font-semibold uppercase tracking-[0.28em] text-[hsl(184,73%,61%)]">
+      {/* Page header */}
+      <div className="mb-12 border-b border-white/8 pb-10">
+        <p className="text-[0.75rem] font-semibold uppercase tracking-[0.3em] text-[hsl(184,73%,61%)]">
           {content.section}
         </p>
         <h1
-          className="mt-3 text-[2.6rem] font-semibold tracking-tight text-white md:text-[3.2rem]"
+          className="mt-3 text-4xl font-semibold tracking-tight text-white md:text-[2.75rem] leading-tight"
           style={{ fontFamily: "var(--font-brand)" }}
         >
           {content.title}
         </h1>
-        <p className="mt-4 text-[1rem] leading-8 text-white/50">{content.description}</p>
+        <p className="mt-4 max-w-2xl text-[1.05rem] leading-8 text-white/50">{content.description}</p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         {content.blocks.map((block, index) => (
           <Block key={index} block={block} />
         ))}
@@ -164,55 +184,70 @@ type BlockDef =
 function Block({ block }: { block: BlockDef }) {
   if (block.type === "h2") {
     return (
-      <h2
-        id={block.id}
-        className="scroll-mt-24 pt-4 text-[1.7rem] font-semibold tracking-tight text-white"
-        style={{ fontFamily: "var(--font-brand)" }}
-      >
-        {block.text}
-      </h2>
+      <div className="mt-10 mb-1 flex items-center gap-3">
+        <div className="h-px flex-1 bg-white/8" />
+        <h2
+          id={block.id}
+          className="scroll-mt-24 text-[1.45rem] font-semibold tracking-tight text-white"
+          style={{ fontFamily: "var(--font-brand)" }}
+        >
+          {block.text}
+        </h2>
+        <div className="h-px flex-1 bg-white/8" />
+      </div>
     );
   }
 
   if (block.type === "h3") {
     return (
-      <h3 id={block.id} className="scroll-mt-24 pt-2 text-[1.2rem] font-semibold text-white/90">
+      <h3
+        id={block.id}
+        className="scroll-mt-24 mt-6 mb-1 flex items-center gap-2 text-[1.1rem] font-semibold text-white/90"
+      >
+        <span className="inline-block h-1 w-4 rounded-full bg-[hsl(184,73%,61%)]/60" />
         {block.text}
       </h3>
     );
   }
 
   if (block.type === "p") {
-    return <p className="text-[1rem] leading-8 text-white/60">{block.text}</p>;
+    return <p className="text-[0.97rem] leading-8 text-white/60">{block.text}</p>;
   }
 
   if (block.type === "callout") {
     const styles = {
-      info: "border-sky-500/25 bg-sky-500/8 text-sky-200",
-      warning: "border-amber-500/25 bg-amber-500/8 text-amber-200",
-      tip: "border-[hsl(184,73%,61%)]/25 bg-[hsl(184,73%,61%)]/8 text-[hsl(184,73%,61%)]",
+      info:    { wrap: "border-sky-500/25 bg-sky-500/8",    icon: "ℹ", text: "text-sky-200"   },
+      warning: { wrap: "border-amber-500/25 bg-amber-500/8", icon: "⚠", text: "text-amber-200" },
+      tip:     { wrap: "border-[hsl(184,73%,61%)]/25 bg-[hsl(184,73%,61%)]/8", icon: "✦", text: "text-[hsl(184,73%,61%)]" },
     };
-    const icons = { info: "ℹ", warning: "⚠", tip: "✦" };
+    const s = styles[block.variant];
     return (
-      <div className={cn("flex gap-3 rounded-2xl border px-5 py-4 text-[0.95rem] leading-7", styles[block.variant])}>
-        <span className="shrink-0 text-base">{icons[block.variant]}</span>
-        <span>{block.text}</span>
+      <div className={cn("flex gap-3 rounded-2xl border px-5 py-4", s.wrap)}>
+        <span className={cn("shrink-0 text-base leading-7", s.text)}>{s.icon}</span>
+        <span className={cn("text-[0.93rem] leading-7", s.text)}>{block.text}</span>
       </div>
     );
   }
 
   if (block.type === "code") {
     return (
-      <div className="overflow-hidden rounded-2xl border border-white/8">
-        <div className="flex items-center justify-between border-b border-white/8 bg-white/3 px-4 py-2">
-          <span className="text-[0.68rem] uppercase tracking-[0.22em] text-white/30">
-            {block.lang}
-          </span>
-          <button type="button" className="text-[0.7rem] text-white/30 transition hover:text-white/60">
+      <div className="overflow-hidden rounded-2xl border border-white/8 shadow-lg">
+        <div className="flex items-center justify-between border-b border-white/8 bg-white/[0.03] px-5 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1.5">
+              <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
+              <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
+              <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
+            </div>
+            <span className="ml-2 text-[0.68rem] uppercase tracking-[0.22em] text-white/30">
+              {block.lang}
+            </span>
+          </div>
+          <button type="button" className="text-[0.72rem] text-white/30 transition hover:text-[hsl(184,73%,61%)]">
             Copy
           </button>
         </div>
-        <pre className="overflow-x-auto bg-[hsl(214,55%,3%)] px-5 py-4 text-[0.82rem] leading-6 text-[hsl(184,73%,61%)]">
+        <pre className="overflow-x-auto bg-[hsl(214,55%,3%)] px-6 py-5 text-[0.83rem] leading-7 text-[hsl(184,73%,61%)]">
           <code>{block.code}</code>
         </pre>
       </div>
@@ -221,14 +256,19 @@ function Block({ block }: { block: BlockDef }) {
 
   if (block.type === "steps") {
     return (
-      <div className="space-y-4">
+      <div className="space-y-0">
         {block.items.map((step, index) => (
-          <div key={index} className="flex gap-4">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[hsl(184,73%,61%)]/30 bg-[hsl(184,73%,61%)]/10 text-xs font-bold text-[hsl(184,73%,61%)]">
-              {index + 1}
+          <div key={index} className="flex gap-5">
+            <div className="flex flex-col items-center">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[hsl(184,73%,61%)]/35 bg-[hsl(184,73%,61%)]/12 text-xs font-bold text-[hsl(184,73%,61%)]">
+                {index + 1}
+              </div>
+              {index < block.items.length - 1 && (
+                <div className="mt-1 w-px flex-1 bg-[hsl(184,73%,61%)]/15" style={{ minHeight: "2rem" }} />
+              )}
             </div>
-            <div className="flex-1 pt-0.5">
-              <div className="text-[0.98rem] font-semibold text-white">{step.title}</div>
+            <div className="flex-1 pb-6 pt-0.5">
+              <div className="text-[1rem] font-semibold text-white">{step.title}</div>
               <p className="mt-1.5 text-[0.92rem] leading-7 text-white/50">{step.body}</p>
             </div>
           </div>
@@ -239,30 +279,30 @@ function Block({ block }: { block: BlockDef }) {
 
   if (block.type === "table") {
     return (
-      <div className="overflow-hidden rounded-2xl border border-white/8">
+      <div className="overflow-hidden rounded-2xl border border-white/10 shadow-lg">
         <table className="w-full text-[0.9rem]">
           <thead>
-            <tr className="border-b border-white/8 bg-white/3">
+            <tr className="border-b border-white/10 bg-white/[0.04]">
               {block.headers.map((header) => (
                 <th
                   key={header}
-                  className="px-5 py-3.5 text-left text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-white/40"
+                  className="px-5 py-3.5 text-left text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-white/45"
                 >
                   {header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-white/6">
             {block.rows.map((row, rowIndex) => (
-              <tr key={rowIndex} className="transition-colors hover:bg-white/3">
+              <tr key={rowIndex} className="transition-colors hover:bg-white/[0.03]">
                 {row.map((cell, cellIndex) => (
                   <td
                     key={cellIndex}
-                    className={cn("px-5 py-3.5", cellIndex === 0 ? "font-medium text-white/80" : "text-white/45")}
+                    className={cn("px-5 py-3.5", cellIndex === 0 ? "font-medium text-white/85" : "text-white/50")}
                   >
                     {cell.startsWith("`") ? (
-                      <code className="rounded-lg bg-white/6 px-2 py-0.5 font-mono text-[0.78rem] text-[hsl(184,73%,61%)]">
+                      <code className="rounded-lg bg-[hsl(184,73%,61%)]/10 px-2 py-0.5 font-mono text-[0.78rem] text-[hsl(184,73%,61%)]">
                         {cell.slice(1, -1)}
                       </code>
                     ) : (
@@ -280,10 +320,10 @@ function Block({ block }: { block: BlockDef }) {
 
   if (block.type === "list") {
     return (
-      <ul className="space-y-2.5">
+      <ul className="space-y-3 rounded-2xl border border-white/8 bg-white/[0.02] px-5 py-4">
         {block.items.map((item, index) => (
-          <li key={index} className="flex items-start gap-3 text-[1rem] leading-7 text-white/55">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[hsl(184,73%,61%)]/60" />
+          <li key={index} className="flex items-start gap-3 text-[0.95rem] leading-7 text-white/60">
+            <span className="mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-[hsl(184,73%,61%)]/70" />
             {item}
           </li>
         ))}

@@ -4,8 +4,10 @@ import {
   BarChart3,
   Boxes,
   LayoutDashboard,
+  Network,
   Package,
   Route,
+  Settings,
   ShieldCheck,
   TrendingUp,
   Truck,
@@ -26,11 +28,11 @@ const navItems = [
   { href: "/workflows", label: "Business Processes", icon: Waypoints },
   { href: "/forecasting", label: "Forecasting", icon: TrendingUp },
   { href: "/sales", label: "Sales", icon: DollarSign },
-  { href: "/settings", label: "Integrations", icon: Zap },
 ];
 
 const adminItems = [
-  { href: "/admin", label: "Admin Portal", icon: ShieldCheck },
+  { href: "/admin",         label: "Admin Portal",  icon: ShieldCheck },
+  { href: "/architecture",  label: "Architecture",  icon: Network     },
 ];
 
 const salesItems = [
@@ -80,7 +82,7 @@ export function Sidebar({
       />
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-white/10 bg-slate-950/82 py-6 backdrop-blur-2xl transition-all duration-300 md:static md:z-0 md:min-h-screen",
+          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-white/10 bg-slate-950/82 py-6 backdrop-blur-2xl transition-all duration-300 md:static md:z-0 md:min-h-screen md:h-screen",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           collapsed ? "md:w-[64px] md:px-2 w-[296px] px-5" : "w-[296px] px-5"
         )}
@@ -118,6 +120,7 @@ export function Sidebar({
           </div>
         </div>
 
+        <div className="flex-1 overflow-y-auto scrollbar-hide space-y-0">
         <nav className="grid gap-1.5">
           {navItems.map((item) => {
             const hrefWithTenant = tenantQuery && item.href !== "/globe"
@@ -243,6 +246,26 @@ export function Sidebar({
               );
             })}
           </nav>
+        </div>
+
+        </div>{/* end scrollable nav area */}
+
+        {/* Settings — pinned to bottom */}
+        <div className="pt-4 border-t border-white/10 shrink-0">
+          <a
+            href="/settings"
+            title="Settings"
+            className={cn(
+              "flex items-center rounded-2xl border text-sm font-medium transition-colors",
+              collapsed ? "md:justify-center md:px-0 md:py-3 gap-3 px-4 py-3" : "gap-3 px-4 py-3",
+              activeHref === "/settings"
+                ? "border-white/10 bg-white/10 text-foreground"
+                : "border-transparent text-muted-foreground hover:border-white/10 hover:bg-white/5 hover:text-foreground"
+            )}
+          >
+            <Settings className="h-4 w-4 shrink-0" />
+            <span className={cn(collapsed && "md:hidden")}>Settings</span>
+          </a>
         </div>
 
       </aside>

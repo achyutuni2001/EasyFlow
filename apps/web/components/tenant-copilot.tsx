@@ -171,7 +171,7 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
             aria-label="Close assistant overlay"
           />
 
-          <aside className="absolute bottom-24 right-6 flex h-[min(76vh,760px)] w-[min(430px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[30px] border border-white/10 bg-[hsl(214,55%,5%)]/98 shadow-[0_30px_100px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
+          <aside className="absolute bottom-24 right-6 flex h-[min(76vh,760px)] w-[min(430px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[30px] border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,10%)] shadow-[0_30px_100px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
             <div className="border-b border-white/8 px-5 py-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -197,7 +197,7 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
             <div className="flex-1 overflow-y-auto px-5 py-5">
               {messages.length === 0 ? (
                 <div className="space-y-4">
-                  <div className="rounded-[24px] border border-dashed border-white/10 bg-white/[0.03] p-5 text-sm leading-6 text-white/50">
+                  <div className="rounded-[24px] border border-dashed border-[hsl(220,70%,55%)]/25 bg-[hsl(220,70%,14%)] p-5 text-sm leading-6 text-white/70">
                     {assistantPersona.intro}
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -206,7 +206,7 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
                         key={prompt}
                         type="button"
                         onClick={() => void submitQuestion(prompt)}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[0.78rem] text-white/60 transition hover:border-white/20 hover:bg-white/8 hover:text-white"
+                        className="rounded-full border border-[hsl(220,70%,55%)]/25 bg-[hsl(220,70%,16%)] px-3 py-2 text-[0.78rem] text-white/70 transition hover:border-[hsl(220,70%,55%)]/45 hover:bg-[hsl(220,70%,20%)] hover:text-white"
                       >
                         {prompt}
                       </button>
@@ -306,7 +306,7 @@ function AssistantBubble({
   onPromptClick: (prompt: string) => void;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-4">
+    <div className="rounded-[24px] border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,14%)] p-4">
       <div className="mb-3 flex items-center gap-3">
         <AssistantAvatar />
         <div>
@@ -323,7 +323,7 @@ function AssistantBubble({
           <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/30">Summary</div>
           <ul className="space-y-2 text-sm text-white/55">
             {payload.summary.map((item) => (
-              <li key={item} className="rounded-xl bg-white/[0.03] px-3 py-2">{item}</li>
+              <li key={item} className="rounded-xl bg-[hsl(220,70%,12%)] px-3 py-2">{item}</li>
             ))}
           </ul>
         </div>
@@ -334,7 +334,7 @@ function AssistantBubble({
           <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/30">Alerts</div>
           <div className="space-y-2">
             {payload.alerts.map((alert) => (
-              <div key={`${alert.label}-${alert.detail}`} className="rounded-xl border border-white/8 bg-[hsl(214,55%,4%)] px-3 py-2 text-sm">
+              <div key={`${alert.label}-${alert.detail}`} className="rounded-xl border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,9%)] px-3 py-2 text-sm">
                 <div className="font-medium text-white/75">{alert.label}</div>
                 <div className="text-white/45">{alert.detail}</div>
               </div>
@@ -348,7 +348,7 @@ function AssistantBubble({
           <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/30">Sources</div>
           <div className="space-y-2">
             {payload.citations.map((citation) => (
-              <div key={`${citation.sourceType}-${citation.sourceId}`} className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-sm">
+              <div key={`${citation.sourceType}-${citation.sourceId}`} className="rounded-xl border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,12%)] px-3 py-2 text-sm">
                 <div className="text-white/75">{citation.title}</div>
                 <div className="mt-1 text-xs text-white/45">{citation.excerpt}</div>
               </div>
@@ -366,7 +366,7 @@ function AssistantBubble({
                 key={item}
                 type="button"
                 onClick={() => onPromptClick(item)}
-                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[0.72rem] text-white/55 transition hover:border-white/20 hover:text-white"
+                className="rounded-full border border-[hsl(220,70%,55%)]/25 bg-[hsl(220,70%,16%)] px-3 py-1.5 text-[0.72rem] text-white/65 transition hover:border-[hsl(220,70%,55%)]/45 hover:text-white"
               >
                 {item}
               </button>
