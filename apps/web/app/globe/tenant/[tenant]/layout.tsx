@@ -80,7 +80,7 @@ export default function TenantLayout({
           {/* Logo */}
           <div className="flex items-center justify-between px-5 py-5 border-b border-border">
             <Link href="/globe" className="flex items-center text-sm font-semibold text-foreground hover:text-secondary transition">
-              <LogoWordmark className="h-14 w-[240px]" />
+              <LogoWordmark className="h-14 w-[240px]" lightSurface={theme === "light"} />
             </Link>
             <button onClick={() => setMobileOpen(false)} className="md:hidden text-muted-foreground hover:text-foreground">
               <X className="h-5 w-5" />
