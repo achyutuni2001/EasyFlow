@@ -21,12 +21,9 @@ export function useTheme() {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
-  // Read saved preference on mount
+  // Always dark mode
   useEffect(() => {
-    const saved = localStorage.getItem("easyflow-theme") as Theme | null;
-    const preferred = saved ?? "dark";
-    setTheme(preferred);
-    applyTheme(preferred);
+    applyTheme("dark");
   }, []);
 
   function applyTheme(t: Theme) {
