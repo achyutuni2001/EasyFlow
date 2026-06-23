@@ -133,8 +133,8 @@ export default function GlobePage() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={page}
-                  className={`grid w-full auto-rows-[1fr] gap-4 sm:grid-cols-2 ${
-                    isFiveCardPage ? "lg:grid-cols-6" : "lg:grid-cols-3"
+                  className={`grid w-full gap-4 sm:grid-cols-2 ${
+                    isFiveCardPage ? "lg:grid-cols-5 lg:grid-rows-2" : "lg:grid-cols-3 auto-rows-[1fr]"
                   }`}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -149,14 +149,14 @@ export default function GlobePage() {
                         className={`flex ${
                           isFiveCardPage
                             ? i === 0
-                              ? "lg:col-span-2 lg:col-start-1"
+                              ? "lg:col-start-1 lg:row-start-1"   // W peak 1
                               : i === 1
-                                ? "lg:col-span-2 lg:col-start-3"
+                                ? "lg:col-start-2 lg:row-start-2" // W valley 1
                                 : i === 2
-                                  ? "lg:col-span-2 lg:col-start-5"
+                                  ? "lg:col-start-3 lg:row-start-1" // W peak 2
                                   : i === 3
-                                    ? "lg:col-span-2 lg:col-start-2"
-                                    : "lg:col-span-2 lg:col-start-4"
+                                    ? "lg:col-start-4 lg:row-start-2" // W valley 2
+                                    : "lg:col-start-5 lg:row-start-1"  // W peak 3
                             : ""
                         }`}
                         initial={{ opacity: 0, y: 28, scale: 0.9, filter: "blur(8px)" }}
