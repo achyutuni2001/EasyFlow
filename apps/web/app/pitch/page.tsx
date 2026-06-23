@@ -62,7 +62,7 @@ const flows = [
   },
   {
     title: "Risk is scored automatically",
-    body: "Stockout probability, supplier delay risk, and order slip forecasts are computed continuously and surfaced the moment they become actionable.",
+    body: "Stockout probability, supplier delay risk, and demand forecasts are computed per tenant and scoped in isolation — each company sees only its own forward-looking signals.",
     icon: Radar,
   },
   {

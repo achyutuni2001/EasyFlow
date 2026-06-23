@@ -884,6 +884,7 @@ docker compose up -d --build
     blocks: [
       { type: "h2", id: "what", text: "What is a workspace" },
       { type: "p", text: "A workspace (also called a tenant) is one company's private home inside EasyFlow. Every workspace has its own team, its own workflows, its own ERP connections, and its own data. Two workspaces never see each other's information." },
+      { type: "p", text: "Tenant isolation applies across every surface — including the Forecasting page. When you navigate to Forecasting from inside a tenant workspace, EasyFlow automatically scopes all charts, demand projections, inventory coverage data, and urgency scores to that tenant only. No other company's data is ever shown." },
       { type: "callout", variant: "info", text: "If you manage supply chain operations for multiple companies — as a 3PL, a consultant, or a holding group — each company is a separate workspace. You switch between them from the Globe screen." },
 
       { type: "h2", id: "creating", text: "Creating a workspace" },

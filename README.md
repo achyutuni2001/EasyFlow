@@ -86,7 +86,7 @@ That is the real value of the product:
 - `/dashboard`
   - operational dashboard
 - `/forecasting`
-  - forecasting and forward-looking views
+  - tenant-scoped forecasting: 12-week demand projection, inventory coverage gaps, supplier fill rate trends, and replenishment urgency scores — automatically filtered to the active tenant; super admins can toggle across tenants
 - `/admin`
   - super admin portal: create and manage tenants, manage users, configure role permissions, system settings
 - `/settings`

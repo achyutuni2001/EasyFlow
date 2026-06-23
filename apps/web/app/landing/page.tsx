@@ -22,7 +22,7 @@ const highlights = [
   },
   {
     title: "Predictive risk intelligence",
-    body: "Stockout risk, supplier delay probability, and order slip forecasts appear live on the canvas so teams see problems before they become disruptions.",
+    body: "Stockout risk, supplier delay probability, and demand forecasts are scoped to each tenant — no company ever sees another's signals. Forward-looking charts appear on the canvas and in the tenant-isolated Forecasting view.",
     icon: DatabaseZap,
   },
   {
