@@ -113,10 +113,7 @@ export function Sidebar({
             <div className="text-[0.66rem] uppercase tracking-[0.24em] text-secondary/80">
               Supply Chain Coordination
             </div>
-            <LogoWordmark
-              className="mt-3 h-[9rem] w-full max-w-full overflow-visible"
-              imageClassName="scale-[4] origin-left object-left"
-            />
+            <LogoWordmark className="mt-3 h-12 w-[200px]" />
             <p className="mt-3 max-w-[15rem] text-[0.92rem] leading-7 text-muted-foreground/90 hidden md:block">
               Approvals, replenishment, and shipment follow-up in one operational view.
             </p>
