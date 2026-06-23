@@ -26,14 +26,15 @@ import { TenantCopilot } from "@/components/tenant-copilot";
 import { LogoWordmark } from "@/components/logo-wordmark";
 
 const tenantModules = [
-  { href: "",                     label: "Dashboard",                 icon: LayoutDashboard },
-  { href: "/canvas",              label: "Canvas",                    icon: Workflow },
-  { href: "/inventory",           label: "Inventory",                 icon: Package },
-  { href: "/logistics",           label: "Logistics",                 icon: Truck },
-  { href: "/suppliers",           label: "Suppliers",                 icon: BarChart3 },
-  { href: "/users",               label: "Users",                     icon: Users },
-  { href: "/automation",          label: "Automation & Integration",  icon: Zap },
-  { href: "/logistic-management", label: "Logistic Management",       icon: Route },
+  { href: "",                     label: "Dashboard",                 icon: LayoutDashboard, absolute: false },
+  { href: "/canvas",              label: "Canvas",                    icon: Workflow,        absolute: false },
+  { href: "/inventory",           label: "Inventory",                 icon: Package,         absolute: false },
+  { href: "/logistics",           label: "Logistics",                 icon: Truck,           absolute: false },
+  { href: "/suppliers",           label: "Suppliers",                 icon: BarChart3,       absolute: false },
+  { href: "/users",               label: "Users",                     icon: Users,           absolute: false },
+  { href: "/automation",          label: "Automation & Integration",  icon: Zap,             absolute: false },
+  { href: "/logistic-management", label: "Logistic Management",       icon: Route,           absolute: false },
+  { href: "/forecasting",         label: "Forecasting",               icon: TrendingUp,      absolute: true  },
 ];
 
 export default function TenantLayout({
@@ -92,7 +93,7 @@ export default function TenantLayout({
           {/* Module nav */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {tenantModules.map((item) => {
-              const href = `${base}${item.href}`;
+              const href = item.absolute ? item.href : `${base}${item.href}`;
               const isActive = item.href === "" ? pathname === base || pathname === `${base}/` : pathname === href || pathname.startsWith(`${href}/`);
               return (
                 <Link
@@ -113,23 +114,6 @@ export default function TenantLayout({
             })}
 
           </nav>
-
-          {/* Global links */}
-          <div className="px-3 pb-2 border-t border-white/[0.06]">
-            <Link
-              href="/forecasting"
-              className={cn(
-                "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
-                pathname === "/forecasting"
-                  ? "bg-secondary/15 border border-secondary/25 text-secondary"
-                  : "text-white/50 hover:bg-white/5 hover:text-white border border-transparent"
-              )}
-              onClick={() => setMobileOpen(false)}
-            >
-              <TrendingUp className="h-4 w-4 shrink-0" />
-              Forecasting
-            </Link>
-          </div>
 
           {/* Back to tenants */}
           <div className="px-3 py-3 border-t border-white/[0.06]">
