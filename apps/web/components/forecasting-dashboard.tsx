@@ -153,16 +153,21 @@ const shortName: Record<string, string> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ForecastingDashboard() {
+export function ForecastingDashboard({ tenantSlug }: { tenantSlug?: string }) {
+  const pinnedTenant = tenantSlug
+    ? tenantSeeds.find((t) => t.slug === tenantSlug || t.name.toLowerCase().replace(/\s+/g, "-") === tenantSlug)
+    : null;
+
   const [activeTenants, setActiveTenants] = useState<Set<string>>(
-    new Set(tenantSeeds.map((t) => t.name))
+    new Set(pinnedTenant ? [pinnedTenant.name] : tenantSeeds.map((t) => t.name))
   );
 
   function toggleTenant(name: string) {
+    if (pinnedTenant) return; // locked to one tenant
     setActiveTenants((prev) => {
       const next = new Set(prev);
       if (next.has(name)) {
-        if (next.size === 1) return prev; // keep at least one
+        if (next.size === 1) return prev;
         next.delete(name);
       } else {
         next.add(name);
@@ -177,23 +182,33 @@ export function ForecastingDashboard() {
     <div className="grid gap-6">
 
       {/* Tenant filter pills */}
-      <div className="flex flex-wrap gap-2">
-        {tenantSeeds.map((t) => (
-          <button
-            key={t.name}
-            type="button"
-            onClick={() => toggleTenant(t.name)}
-            className="rounded-full border px-3 py-1.5 text-xs font-medium transition"
-            style={{
-              borderColor: activeTenants.has(t.name) ? tenantColours[t.name] : "rgba(255,255,255,0.1)",
-              color: activeTenants.has(t.name) ? tenantColours[t.name] : "rgba(238,244,251,0.4)",
-              background: activeTenants.has(t.name) ? `${tenantColours[t.name]}14` : "transparent",
-            }}
-          >
-            {shortName[t.name]}
-          </button>
-        ))}
-      </div>
+      {pinnedTenant ? (
+        <div className="flex items-center gap-2">
+          <span className="rounded-full border px-3 py-1.5 text-xs font-medium"
+            style={{ borderColor: tenantColours[pinnedTenant.name], color: tenantColours[pinnedTenant.name], background: `${tenantColours[pinnedTenant.name]}14` }}>
+            {pinnedTenant.name}
+          </span>
+          <span className="text-xs text-white/30">Showing data for this tenant only</span>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {tenantSeeds.map((t) => (
+            <button
+              key={t.name}
+              type="button"
+              onClick={() => toggleTenant(t.name)}
+              className="rounded-full border px-3 py-1.5 text-xs font-medium transition"
+              style={{
+                borderColor: activeTenants.has(t.name) ? tenantColours[t.name] : "rgba(255,255,255,0.1)",
+                color: activeTenants.has(t.name) ? tenantColours[t.name] : "rgba(238,244,251,0.4)",
+                background: activeTenants.has(t.name) ? `${tenantColours[t.name]}14` : "transparent",
+              }}
+            >
+              {shortName[t.name]}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Top row: Demand forecast + Urgency radial */}
       <div className="grid gap-6 xl:grid-cols-[1fr_320px]">

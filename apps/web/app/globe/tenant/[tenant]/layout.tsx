@@ -34,7 +34,7 @@ const tenantModules = [
   { href: "/users",               label: "Users",                     icon: Users,           absolute: false },
   { href: "/automation",          label: "Automation & Integration",  icon: Zap,             absolute: false },
   { href: "/logistic-management", label: "Logistic Management",       icon: Route,           absolute: false },
-  { href: "/forecasting",         label: "Forecasting",               icon: TrendingUp,      absolute: true  },
+  { href: `/forecasting`,         label: "Forecasting",               icon: TrendingUp,      absolute: true  },
 ];
 
 export default function TenantLayout({
@@ -93,7 +93,7 @@ export default function TenantLayout({
           {/* Module nav */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {tenantModules.map((item) => {
-              const href = item.absolute ? item.href : `${base}${item.href}`;
+              const href = item.absolute ? `${item.href}?tenant=${params.tenant}` : `${base}${item.href}`;
               const isActive = item.href === "" ? pathname === base || pathname === `${base}/` : pathname === href || pathname.startsWith(`${href}/`);
               return (
                 <Link
