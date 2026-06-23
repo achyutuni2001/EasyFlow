@@ -105,8 +105,8 @@ export function Sidebar({
 
           {/* Desktop collapsed → compact logo mark */}
           <div className={cn("hidden", collapsed && "md:flex md:items-center md:justify-center md:py-1")}>
-            <div className="flex h-24 w-24 items-center justify-center rounded-xl border border-white/10 bg-secondary/10">
-              <LogoMark className="h-20 w-20" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-secondary/10">
+              <LogoMark className="h-5 w-5" />
             </div>
           </div>
 
