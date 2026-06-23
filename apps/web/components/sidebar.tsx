@@ -3,6 +3,8 @@
 import {
   BarChart3,
   Boxes,
+  ChevronLeft,
+  ChevronRight,
   Globe2,
   LayoutDashboard,
   Network,
@@ -58,6 +60,7 @@ type SidebarProps = {
   collapsed?: boolean;
   mobileOpen?: boolean;
   onClose?: () => void;
+  onCollapse?: () => void;
 };
 
 export function Sidebar({
@@ -65,6 +68,7 @@ export function Sidebar({
   collapsed = false,
   mobileOpen = false,
   onClose,
+  onCollapse,
 }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -284,6 +288,22 @@ export function Sidebar({
             <Settings className="h-4 w-4 shrink-0" />
             <span className={cn(collapsed && "md:hidden")}>Settings</span>
           </a>
+
+          {/* Collapse toggle — desktop only */}
+          {onCollapse && (
+            <button
+              type="button"
+              onClick={onCollapse}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className={cn(
+                "mt-2 hidden md:flex items-center rounded-2xl border border-transparent text-sm font-medium transition-colors gap-3 px-4 py-3 text-muted-foreground hover:border-white/10 hover:bg-white/5 hover:text-foreground w-full",
+                collapsed && "md:justify-center md:px-0"
+              )}
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : <ChevronLeft className="h-4 w-4 shrink-0" />}
+              <span className={cn(collapsed && "md:hidden")}>Collapse</span>
+            </button>
+          )}
         </div>
 
       </aside>

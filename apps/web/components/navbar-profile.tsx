@@ -59,7 +59,7 @@ export function NavbarProfile() {
             </div>
             <div className="py-1.5">
               <DropdownItem icon={User} label="Your Profile" onClick={() => setProfileOpen(false)} />
-              <DropdownItem icon={Settings} label="Account Settings" onClick={() => setProfileOpen(false)} />
+              <DropdownItem icon={Settings} label="Settings" href="/settings" onClick={() => setProfileOpen(false)} />
               <div className="mx-3 my-1.5 border-t border-white/8" />
               <DropdownItem icon={LogOut} label="Sign out" onClick={handleSignOut} danger />
             </div>
@@ -102,24 +102,29 @@ function DropdownItem({
   icon: Icon,
   label,
   onClick,
+  href,
   danger = false,
 }: {
   icon: React.FC<{ className?: string }>;
   label: string;
   onClick: () => void;
+  href?: string;
   danger?: boolean;
 }) {
+  const cls = cn(
+    "flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+    danger ? "text-red-400 hover:bg-red-500/10" : "text-white/65 hover:bg-white/5 hover:text-white"
+  );
+  if (href) {
+    return (
+      <a href={href} onClick={onClick} className={cls}>
+        <Icon className="h-4 w-4 shrink-0" />
+        {label}
+      </a>
+    );
+  }
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-        danger
-          ? "text-red-400 hover:bg-red-500/10"
-          : "text-white/65 hover:bg-white/5 hover:text-white"
-      )}
-    >
+    <button type="button" onClick={onClick} className={cls}>
       <Icon className="h-4 w-4 shrink-0" />
       {label}
     </button>
