@@ -3,6 +3,7 @@
 import {
   BarChart3,
   Boxes,
+  Globe2,
   LayoutDashboard,
   Network,
   Package,
@@ -17,6 +18,7 @@ import {
   Zap,
   DollarSign,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -121,6 +123,22 @@ export function Sidebar({
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-hide space-y-0">
+
+        {/* Globe home link */}
+        <div className={cn("mb-2", collapsed && "md:mb-1")}>
+          <Link
+            href="/globe"
+            className={cn(
+              "flex items-center rounded-2xl border text-sm font-medium transition-colors gap-3 px-4 py-3",
+              collapsed && "md:justify-center md:px-0 md:py-3",
+              "border-white/10 bg-white/5 text-secondary hover:bg-white/10"
+            )}
+          >
+            <Globe2 className="h-4 w-4 shrink-0" />
+            <span className={cn(collapsed && "md:hidden")}>Tenant Workspaces</span>
+          </Link>
+        </div>
+
         <nav className="grid gap-1.5">
           {navItems.map((item) => {
             const hrefWithTenant = tenantQuery && item.href !== "/globe"
