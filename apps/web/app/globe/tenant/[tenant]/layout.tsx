@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Bell,
+  ChevronLeft,
+  ChevronRight,
   LayoutDashboard,
   Menu,
   Package,
@@ -21,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { TenantCopilot } from "@/components/tenant-copilot";
 import { LogoWordmark } from "@/components/logo-wordmark";
+import { LogoMark } from "@/components/logo-mark";
 
 const tenantModules = [
   { href: "",                     label: "Dashboard",                 icon: LayoutDashboard, absolute: false },
@@ -43,6 +46,7 @@ export default function TenantLayout({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const base = `/globe/tenant/${params.tenant}`;
   const tenantName = decodeURIComponent(params.tenant).replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
@@ -68,31 +72,43 @@ export default function TenantLayout({
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-border bg-card backdrop-blur-2xl transition-transform duration-300",
+            "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border bg-card backdrop-blur-2xl transition-all duration-300",
             "md:static md:z-0 md:translate-x-0 md:min-h-screen",
-            mobileOpen ? "translate-x-0" : "-translate-x-full"
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
+            collapsed ? "md:w-[64px]" : "w-[260px]"
           )}
         >
           {/* Logo */}
-          <div className="flex items-center justify-between px-5 py-5 border-b border-border">
-            <Link href="/globe" className="flex items-center text-sm font-semibold text-foreground hover:text-secondary transition">
-              <LogoWordmark className="h-14 w-[240px]" />
-            </Link>
+          <div className={cn("flex items-center justify-between border-b border-border", collapsed ? "px-2 py-4 justify-center" : "px-5 py-5")}>
+            {!collapsed && (
+              <Link href="/globe" className="flex items-center text-sm font-semibold text-foreground hover:text-secondary transition">
+                <LogoWordmark className="h-14 w-[200px]" />
+              </Link>
+            )}
+            {collapsed && (
+              <Link href="/globe" className="flex items-center justify-center">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-secondary/10">
+                  <LogoMark className="h-5 w-5" />
+                </div>
+              </Link>
+            )}
             <button onClick={() => setMobileOpen(false)} className="md:hidden text-muted-foreground hover:text-foreground">
               <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Tenant label */}
-          <div className="px-5 py-4 border-b border-border">
-            <div className="text-[0.65rem] uppercase tracking-[0.28em] text-secondary/80 mb-1">Tenant</div>
-            <div className="text-sm font-semibold text-foreground truncate">
-              {decodeURIComponent(params.tenant).replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+          {!collapsed && (
+            <div className="px-5 py-4 border-b border-border">
+              <div className="text-[0.65rem] uppercase tracking-[0.28em] text-secondary/80 mb-1">Tenant</div>
+              <div className="text-sm font-semibold text-foreground truncate">
+                {decodeURIComponent(params.tenant).replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Module nav */}
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-hide">
             {tenantModules.map((item) => {
               const href = item.absolute ? `${item.href}?tenant=${params.tenant}` : `${base}${item.href}`;
               const isActive = item.href === "" ? pathname === base || pathname === `${base}/` : pathname === href || pathname.startsWith(`${href}/`);
@@ -100,29 +116,44 @@ export default function TenantLayout({
                 <Link
                   key={item.href}
                   href={href}
+                  title={collapsed ? item.label : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                    "flex items-center rounded-2xl px-3 py-3 text-sm font-medium transition-colors border",
+                    collapsed ? "justify-center" : "gap-3",
                     isActive
-                      ? "bg-secondary/15 border border-secondary/25 text-secondary"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
+                      ? "bg-secondary/15 border-secondary/25 text-secondary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground border-transparent"
                   )}
                   onClick={() => setMobileOpen(false)}
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
-                  {item.label}
+                  {!collapsed && item.label}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Back to tenants */}
-          <div className="px-3 py-3 border-t border-border">
-            <Link
-              href="/globe"
-              className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs text-muted-foreground/60 hover:text-muted-foreground transition"
+          {/* Back to tenants + collapse */}
+          <div className="px-2 py-3 border-t border-border space-y-1">
+            {!collapsed && (
+              <Link
+                href="/globe"
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs text-muted-foreground/60 hover:text-muted-foreground transition"
+              >
+                ← All Tenants
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setCollapsed(c => !c)}
+              className={cn(
+                "hidden md:flex items-center rounded-2xl px-3 py-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition w-full border border-transparent",
+                collapsed ? "justify-center" : "gap-3"
+              )}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              ← All Tenants
-            </Link>
+              {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : <><ChevronLeft className="h-4 w-4 shrink-0" /><span>Collapse</span></>}
+            </button>
           </div>
         </aside>
 
