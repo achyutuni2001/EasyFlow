@@ -50,6 +50,13 @@ export default function TenantLayout({
   const base = `/globe/tenant/${params.tenant}`;
   const tenantName = decodeURIComponent(params.tenant).replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
+  // Persist active tenant so global pages (forecasting, etc.) can scope to it
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("easyflow-active-tenant", params.tenant);
+    }
+  }, [params.tenant]);
+
   return (
     <div className="min-h-screen bg-[hsl(214,55%,5%)]" style={{
       backgroundImage: "radial-gradient(circle at top left,rgba(89,225,217,0.07),transparent 30%),radial-gradient(circle at bottom right,rgba(255,154,90,0.05),transparent 28%)"

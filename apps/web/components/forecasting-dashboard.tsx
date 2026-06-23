@@ -153,14 +153,29 @@ const shortName: Record<string, string> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ForecastingDashboard({ tenantSlug }: { tenantSlug?: string }) {
-  const pinnedTenant = tenantSlug
-    ? tenantSeeds.find((t) => t.slug === tenantSlug || t.name.toLowerCase().replace(/\s+/g, "-") === tenantSlug)
+export function ForecastingDashboard({ tenantSlug: slugProp }: { tenantSlug?: string }) {
+  const [resolvedSlug, setResolvedSlug] = useState<string | null>(slugProp ?? null);
+
+  useEffect(() => {
+    if (!slugProp && typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("easyflow-active-tenant");
+      if (stored) setResolvedSlug(stored);
+    }
+  }, [slugProp]);
+
+  const pinnedTenant = resolvedSlug
+    ? tenantSeeds.find((t) => t.slug === resolvedSlug || t.name.toLowerCase().replace(/\s+/g, "-") === resolvedSlug)
     : null;
 
   const [activeTenants, setActiveTenants] = useState<Set<string>>(
-    new Set(pinnedTenant ? [pinnedTenant.name] : tenantSeeds.map((t) => t.name))
+    new Set(tenantSeeds.map((t) => t.name))
   );
+
+  useEffect(() => {
+    if (pinnedTenant) {
+      setActiveTenants(new Set([pinnedTenant.name]));
+    }
+  }, [pinnedTenant?.name]);
 
   function toggleTenant(name: string) {
     if (pinnedTenant) return; // locked to one tenant

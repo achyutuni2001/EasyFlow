@@ -16,7 +16,7 @@ export default function ForecastingPage({ searchParams }: { searchParams?: { ten
             Analytics
           </Badge>
           <h1 className="mt-3 text-2xl font-medium tracking-tight md:text-3xl">
-            {tenantSlug ? "Forward-looking signals." : "Forward-looking signals across all tenants."}
+            Forward-looking signals.
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground md:text-[0.95rem]">
             12-week demand forecast, inventory coverage gaps, supplier fill rate trends, and workflow bottleneck risk — all in one view.
