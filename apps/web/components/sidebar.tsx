@@ -24,7 +24,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LogoMark } from "@/components/logo-mark";
 import { LogoWordmark } from "@/components/logo-wordmark";
-import { useTheme } from "@/components/theme-provider";
 
 const navItems = [
   { href: "/dashboard", label: "Operations", icon: LayoutDashboard },
@@ -70,7 +69,6 @@ export function Sidebar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tenantQuery = searchParams?.get("tenant");
-  const { theme } = useTheme();
   const tenantMatch = pathname.match(/^\/globe\/tenant\/([^/]+)/);
   const tenantSlug = tenantMatch?.[1] ?? (tenantQuery ? tenantQuery.toLowerCase().replace(/\s+/g, "-") : null);
   const tenantBaseHref = tenantSlug ? `/globe/tenant/${tenantSlug}` : null;
@@ -117,7 +115,7 @@ export function Sidebar({
             <div className="text-[0.66rem] uppercase tracking-[0.24em] text-secondary/80">
               Supply Chain Coordination
             </div>
-            <LogoWordmark className="mt-3 h-24 w-[260px]" lightSurface={theme === "light"} />
+            <LogoWordmark className="mt-3 h-24 w-[260px]" />
             <p className="mt-3 max-w-[15rem] text-[0.92rem] leading-7 text-muted-foreground/90 hidden md:block">
               Approvals, replenishment, and shipment follow-up in one operational view.
             </p>

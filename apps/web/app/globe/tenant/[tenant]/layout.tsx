@@ -8,11 +8,9 @@ import {
   Bell,
   LayoutDashboard,
   Menu,
-  Moon,
   Package,
   Route,
   Search,
-  Sun,
   TrendingUp,
   Truck,
   Users,
@@ -21,7 +19,6 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/components/theme-provider";
 import { TenantCopilot } from "@/components/tenant-copilot";
 import { LogoWordmark } from "@/components/logo-wordmark";
 
@@ -46,7 +43,6 @@ export default function TenantLayout({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { theme, toggle } = useTheme();
   const base = `/globe/tenant/${params.tenant}`;
   const tenantName = decodeURIComponent(params.tenant).replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
@@ -80,7 +76,7 @@ export default function TenantLayout({
           {/* Logo */}
           <div className="flex items-center justify-between px-5 py-5 border-b border-border">
             <Link href="/globe" className="flex items-center text-sm font-semibold text-foreground hover:text-secondary transition">
-              <LogoWordmark className="h-14 w-[240px]" lightSurface={theme === "light"} />
+              <LogoWordmark className="h-14 w-[240px]" />
             </Link>
             <button onClick={() => setMobileOpen(false)} className="md:hidden text-muted-foreground hover:text-foreground">
               <X className="h-5 w-5" />
@@ -154,16 +150,7 @@ export default function TenantLayout({
               </div>
             </div>
 
-            {/* Right: theme toggle + bell */}
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={toggle}
-                title={theme === "dark" ? "Switch to light" : "Switch to dark"}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground transition hover:bg-muted/80 hover:text-foreground"
-              >
-                {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-              </button>
               <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
                 <Bell className="h-3 w-3" />
               </button>
