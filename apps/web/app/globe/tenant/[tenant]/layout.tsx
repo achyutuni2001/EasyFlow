@@ -58,13 +58,11 @@ export default function TenantLayout({
   }, [params.tenant]);
 
   return (
-    <div className="min-h-screen bg-[hsl(214,55%,5%)]" style={{
-      backgroundImage: "radial-gradient(circle at top left,rgba(89,225,217,0.07),transparent 30%),radial-gradient(circle at bottom right,rgba(255,154,90,0.05),transparent 28%)"
-    }}>
+    <div className="min-h-screen bg-background">
       {/* Mobile overlay */}
       <div
         className={cn(
-          "fixed inset-0 z-30 bg-slate-950/60 backdrop-blur-sm transition md:hidden",
+          "fixed inset-0 z-30 bg-foreground/20 backdrop-blur-sm transition md:hidden",
           mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={() => setMobileOpen(false)}
@@ -74,25 +72,25 @@ export default function TenantLayout({
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-white/10 bg-[hsl(214,55%,4%)]/90 backdrop-blur-2xl transition-transform duration-300",
+            "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-border bg-card backdrop-blur-2xl transition-transform duration-300",
             "md:static md:z-0 md:translate-x-0 md:min-h-screen",
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
           {/* Logo */}
-          <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
-            <Link href="/globe" className="flex items-center text-sm font-semibold text-white hover:text-secondary transition">
+          <div className="flex items-center justify-between px-5 py-5 border-b border-border">
+            <Link href="/globe" className="flex items-center text-sm font-semibold text-foreground hover:text-secondary transition">
               <LogoWordmark className="h-14 w-[240px]" />
             </Link>
-            <button onClick={() => setMobileOpen(false)} className="md:hidden text-white/40 hover:text-white">
+            <button onClick={() => setMobileOpen(false)} className="md:hidden text-muted-foreground hover:text-foreground">
               <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Tenant label */}
-          <div className="px-5 py-4 border-b border-white/[0.06]">
+          <div className="px-5 py-4 border-b border-border">
             <div className="text-[0.65rem] uppercase tracking-[0.28em] text-secondary/80 mb-1">Tenant</div>
-            <div className="text-sm font-semibold text-white truncate">
+            <div className="text-sm font-semibold text-foreground truncate">
               {decodeURIComponent(params.tenant).replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
             </div>
           </div>
@@ -110,7 +108,7 @@ export default function TenantLayout({
                     "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-secondary/15 border border-secondary/25 text-secondary"
-                      : "text-white/50 hover:bg-white/5 hover:text-white border border-transparent"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
                   )}
                   onClick={() => setMobileOpen(false)}
                 >
@@ -119,14 +117,13 @@ export default function TenantLayout({
                 </Link>
               );
             })}
-
           </nav>
 
           {/* Back to tenants */}
-          <div className="px-3 py-3 border-t border-white/[0.06]">
+          <div className="px-3 py-3 border-t border-border">
             <Link
               href="/globe"
-              className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs text-white/30 hover:text-white/60 transition"
+              className="flex items-center gap-3 rounded-2xl px-4 py-3 text-xs text-muted-foreground/60 hover:text-muted-foreground transition"
             >
               ← All Tenants
             </Link>
@@ -135,11 +132,11 @@ export default function TenantLayout({
 
         {/* Main content */}
         <div className="flex-1 min-w-0 flex flex-col">
-          {/* Top navbar — all breakpoints */}
-          <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl px-4 py-2 md:px-6">
+          {/* Top navbar */}
+          <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-card/80 backdrop-blur-2xl px-4 py-2 md:px-6">
             {/* Left: menu toggle + title */}
             <div className="flex min-w-0 items-center gap-2.5">
-              <button onClick={() => setMobileOpen(true)} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-muted-foreground md:hidden">
+              <button onClick={() => setMobileOpen(true)} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground md:hidden">
                 <Menu className="h-4 w-4" />
               </button>
               <div className="min-w-0 hidden md:block">
@@ -151,7 +148,7 @@ export default function TenantLayout({
 
             {/* Centre: search */}
             <div className="flex flex-1 justify-center px-4 xl:px-8">
-              <div className="flex w-full max-w-lg items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[0.82rem] text-muted-foreground">
+              <div className="flex w-full max-w-lg items-center gap-2.5 rounded-xl border border-border bg-muted px-3 py-2 text-[0.82rem] text-muted-foreground">
                 <Search className="h-3 w-3 shrink-0" />
                 <span className="truncate">Search inventory, shipments, suppliers…</span>
               </div>
@@ -163,11 +160,11 @@ export default function TenantLayout({
                 type="button"
                 onClick={toggle}
                 title={theme === "dark" ? "Switch to light" : "Switch to dark"}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground transition hover:bg-muted/80 hover:text-foreground"
               >
                 {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               </button>
-              <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-muted-foreground">
+              <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
                 <Bell className="h-3 w-3" />
               </button>
             </div>
