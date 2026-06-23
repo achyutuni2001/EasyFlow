@@ -103,8 +103,8 @@ export function Sidebar({
 
           {/* Desktop collapsed → compact logo mark */}
           <div className={cn("hidden", collapsed && "md:flex md:items-center md:justify-center md:py-1")}>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-secondary/10">
-              <LogoMark className="h-6 w-6" />
+            <div className="flex h-24 w-24 items-center justify-center rounded-xl border border-white/10 bg-secondary/10">
+              <LogoMark className="h-20 w-20" />
             </div>
           </div>
 
@@ -113,7 +113,10 @@ export function Sidebar({
             <div className="text-[0.66rem] uppercase tracking-[0.24em] text-secondary/80">
               Supply Chain Coordination
             </div>
-            <LogoWordmark className="mt-3 h-11 w-[220px]" />
+            <LogoWordmark
+              className="mt-3 h-[9rem] w-full max-w-full overflow-visible"
+              imageClassName="scale-[4] origin-left object-left"
+            />
             <p className="mt-3 max-w-[15rem] text-[0.92rem] leading-7 text-muted-foreground/90 hidden md:block">
               Approvals, replenishment, and shipment follow-up in one operational view.
             </p>

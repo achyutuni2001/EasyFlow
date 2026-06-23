@@ -120,6 +120,30 @@ const docsLinks = [
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden">
+      <style>{`
+        @keyframes heroTraceLeft {
+          0% { transform: translateX(-180px) scaleX(0.18); opacity: 0; }
+          18% { opacity: 0.75; }
+          46% { transform: translateX(0px) scaleX(1); opacity: 0.55; }
+          100% { transform: translateX(28px) scaleX(0.62); opacity: 0; }
+        }
+        @keyframes heroTraceRight {
+          0% { transform: translateX(180px) scaleX(0.18); opacity: 0; }
+          16% { opacity: 0.65; }
+          44% { transform: translateX(0px) scaleX(1); opacity: 0.5; }
+          100% { transform: translateX(-24px) scaleX(0.55); opacity: 0; }
+        }
+        @keyframes heroTraceUnder {
+          0% { transform: translateX(-120px) scaleX(0.2); opacity: 0; }
+          24% { opacity: 0.55; }
+          52% { transform: translateX(0px) scaleX(1); opacity: 0.42; }
+          100% { transform: translateX(54px) scaleX(0.72); opacity: 0; }
+        }
+        @keyframes heroLogoFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-2px); }
+        }
+      `}</style>
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-0"
@@ -147,11 +171,31 @@ export default function LandingPage() {
               Supply chain coordination layer
             </div>
             <div className="mt-5 flex justify-center">
-              <LogoWordmark
-                centered
-                hero
-                className="h-[6.5rem] w-[560px] md:h-[8rem] md:w-[760px] lg:h-[9rem] lg:w-[900px]"
-              />
+              <div
+                className="relative h-[6.5rem] w-[560px] md:h-[8rem] md:w-[760px] lg:h-[9rem] lg:w-[900px]"
+                style={{ animation: "heroLogoFloat 7.2s ease-in-out infinite" }}
+              >
+                <div className="pointer-events-none absolute inset-0">
+                  <span
+                    className="absolute left-[14%] top-[48%] h-[2px] w-[22%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(89,225,217,0.82),transparent)] blur-[1px]"
+                    style={{ animation: "heroTraceLeft 5.8s ease-out infinite" }}
+                  />
+                  <span
+                    className="absolute right-[13%] top-[34%] h-[2px] w-[18%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(89,225,217,0.68),transparent)] blur-[1px]"
+                    style={{ animation: "heroTraceRight 6.4s ease-out infinite 0.7s" }}
+                  />
+                  <span
+                    className="absolute left-[24%] bottom-[24%] h-[2px] w-[30%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(89,225,217,0.6),transparent)] blur-[1px]"
+                    style={{ animation: "heroTraceUnder 6.8s ease-out infinite 1.2s" }}
+                  />
+                </div>
+                <LogoWordmark
+                  centered
+                  hero
+                  glow
+                  className="h-full w-full"
+                />
+              </div>
             </div>
             <p className="mt-4 text-[0.74rem] font-medium uppercase tracking-[0.17em] text-white/30 md:text-[0.8rem]">
               Easy insights. Clear visibility. Faster decisions.

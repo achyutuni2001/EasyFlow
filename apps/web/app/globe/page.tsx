@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Globe2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { GlobeHero } from "../../components/globe-hero";
 import { LogoMark } from "@/components/logo-mark";
 import { tenantSeeds, TenantSeed } from "@/lib/tenant-seeds";
@@ -46,7 +46,7 @@ export default function GlobePage() {
 
   const totalPages = Math.ceil(companies.length / PAGE_SIZE);
   const pageCompanies = companies.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-
+  const isFiveCardPage = pageCompanies.length === 5;
   function handleEnter() {
     setPhase("entering");
     setPage(0);
@@ -118,13 +118,24 @@ export default function GlobePage() {
                   Each tenant has its own isolated supply chain environment.
                   <span className="ml-2 text-white/25">{companies.length} tenants total</span>
                 </p>
+                <div className="mt-5">
+                  <Link
+                    href="/admin"
+                    className="inline-flex items-center gap-2 rounded-full border border-[hsl(184,73%,61%)]/30 bg-[hsl(184,73%,61%)]/10 px-5 py-2 text-sm font-medium text-[hsl(184,73%,61%)] transition hover:bg-[hsl(184,73%,61%)]/20"
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Tenant
+                  </Link>
+                </div>
               </motion.div>
 
               {/* Cards grid — fixed row height so all cards are equal */}
               <AnimatePresence mode="wait">
                 <motion.div
                   key={page}
-                  className="grid w-full auto-rows-[1fr] gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                  className={`grid w-full auto-rows-[1fr] gap-4 sm:grid-cols-2 ${
+                    isFiveCardPage ? "lg:grid-cols-6" : "lg:grid-cols-3"
+                  }`}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{    opacity: 0, y: -16 }}
@@ -135,7 +146,19 @@ export default function GlobePage() {
                     return (
                       <motion.div
                         key={tenant.slug}
-                        className="flex"
+                        className={`flex ${
+                          isFiveCardPage
+                            ? i === 0
+                              ? "lg:col-span-2 lg:col-start-1"
+                              : i === 1
+                                ? "lg:col-span-2 lg:col-start-3"
+                                : i === 2
+                                  ? "lg:col-span-2 lg:col-start-5"
+                                  : i === 3
+                                    ? "lg:col-span-2 lg:col-start-2"
+                                    : "lg:col-span-2 lg:col-start-4"
+                            : ""
+                        }`}
                         initial={{ opacity: 0, y: 28, scale: 0.9, filter: "blur(8px)" }}
                         animate={{ opacity: 1, y: 0,  scale: 1,   filter: "blur(0px)" }}
                         transition={{
@@ -181,11 +204,6 @@ export default function GlobePage() {
                     );
                   })}
 
-                  {/* Ghost cards to maintain grid layout on partial last page */}
-                  {pageCompanies.length < PAGE_SIZE &&
-                    Array.from({ length: PAGE_SIZE - pageCompanies.length }).map((_, i) => (
-                      <div key={`ghost-${i}`} className="hidden lg:block" aria-hidden />
-                    ))}
                 </motion.div>
               </AnimatePresence>
 

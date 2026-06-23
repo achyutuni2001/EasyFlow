@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Settings2,
   Zap,
@@ -13,18 +13,28 @@ import {
   Webhook,
   Lock,
   Users,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { IntegrationsAdminPanel } from "@/components/integrations-admin";
+import {
+  loadAdminUsers,
+  saveAdminUsers,
+  AdminUser,
+  Role,
+  ROLE_LABELS,
+  ROLE_COLORS,
+} from "@/lib/admin-store";
 
-type Tab = "general" | "integrations" | "notifications" | "security";
+type Tab = "general" | "integrations" | "notifications" | "security" | "users";
 
 const TABS: { id: Tab; label: string; icon: React.FC<{ className?: string }> }[] = [
   { id: "general",       label: "General",       icon: Settings2   },
   { id: "integrations",  label: "Integrations",  icon: Zap         },
   { id: "notifications", label: "Notifications", icon: Bell        },
   { id: "security",      label: "Security",      icon: ShieldCheck },
+  { id: "users",         label: "Users & Roles", icon: Users       },
 ];
 
 const TIMEZONES = [
@@ -117,10 +127,24 @@ export function SettingsPanel() {
   const [notifications, setNotifications] = useState<NotificationSettings>(defaultNotifications);
   const [security, setSecurity] = useState<SecuritySettings>(defaultSecurity);
   const [saved, setSaved] = useState(false);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [rolesSaved, setRolesSaved] = useState(false);
+
+  useEffect(() => {
+    setUsers(loadAdminUsers());
+  }, []);
 
   function handleSave() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  }
+
+  function handleRoleChange(userId: string, newRole: Role) {
+    const updated = users.map((u) => u.id === userId ? { ...u, role: newRole } : u);
+    setUsers(updated);
+    saveAdminUsers(updated);
+    setRolesSaved(true);
+    setTimeout(() => setRolesSaved(false), 2500);
   }
 
   return (
@@ -396,6 +420,70 @@ export function SettingsPanel() {
           </Section>
 
           <SaveBar onSave={handleSave} saved={saved} />
+        </div>
+      )}
+
+      {/* ── Users & Roles ────────────────────────────────────────────────────── */}
+      {activeTab === "users" && (
+        <div className="space-y-5">
+          <div className="overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/80">
+            <div className="border-b border-white/8 px-6 py-3 flex items-center justify-between">
+              <div className="text-[0.68rem] uppercase tracking-[0.32em] text-[hsl(184,73%,61%)]">Platform Users</div>
+              {rolesSaved && (
+                <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Saved
+                </div>
+              )}
+            </div>
+            <div className="divide-y divide-white/8">
+              {users.map((user) => (
+                <div key={user.id} className="flex items-center justify-between gap-4 px-6 py-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-white">{user.name}</div>
+                    <div className="text-xs text-white/40">{user.email}</div>
+                    {user.tenantSlug && (
+                      <div className="mt-0.5 text-xs text-white/25">{user.tenantSlug}</div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={cn(
+                      "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide",
+                      user.status === "active" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                        : user.status === "suspended" ? "border-red-500/20 bg-red-500/10 text-red-300"
+                        : "border-amber-500/20 bg-amber-500/10 text-amber-300"
+                    )}>
+                      {user.status}
+                    </span>
+                    {user.id === "u-super-admin" ? (
+                      <span className={cn(
+                        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[0.65rem] font-medium",
+                        ROLE_COLORS["super_admin"]
+                      )}>
+                        {ROLE_LABELS["super_admin"]}
+                      </span>
+                    ) : (
+                      <div className="relative">
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                          className="appearance-none rounded-full border border-white/10 bg-slate-900 pl-3 pr-7 py-1 text-xs text-white outline-none focus:border-[hsl(184,73%,61%)]/60 transition cursor-pointer"
+                        >
+                          {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
+                            <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-white/40" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <p className="text-xs text-white/30 px-1">
+            Role changes take effect immediately. Super Admin role cannot be changed here.
+            Full user management is available in the <a href="/admin" className="text-[hsl(184,73%,61%)] hover:underline">Admin Portal</a>.
+          </p>
         </div>
       )}
     </div>

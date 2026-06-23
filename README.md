@@ -78,29 +78,48 @@ That is the real value of the product:
 ### App surface
 
 - `/globe`
-  - tenant workspace entry
+  - tenant workspace entry with a **New Tenant** button for super admins
 - `/globe/tenant/[tenant]`
-  - tenant overview
+  - tenant overview with sidebar nav: Dashboard, Canvas, Inventory, Logistics, Suppliers, Users, Automation & Integration, Logistic Management, Forecasting
 - `/workflows`
   - business process canvas
 - `/dashboard`
   - operational dashboard
 - `/forecasting`
   - forecasting and forward-looking views
+- `/admin`
+  - super admin portal: create and manage tenants, manage users, configure role permissions, system settings
 - `/settings`
-  - integration and platform settings
+  - platform settings (General, Integrations, Notifications, Security) plus a **Users & Roles** tab where super admins can change user roles directly
 
 ### Tenant modules
 
 Each tenant workspace currently exposes:
 
 - Overview
+- Canvas
 - Inventory
 - Logistics
 - Suppliers
 - Users
 - Automation & Integration
 - Logistic Management
+- Forecasting
+
+### Super admin capabilities
+
+Super admins have access to two management surfaces:
+
+**Admin Portal (`/admin`)**
+- Create new tenants with a multi-step wizard (company info, supply chain modules, admin user, plan)
+- Manage existing tenants (suspend, delete, view module config)
+- Manage all platform users (invite, suspend, assign roles)
+- Configure role permissions per role (Tenant Admin, Analyst, Operator)
+- System-wide settings
+
+**Settings (`/settings` → Users & Roles tab)**
+- Quick role reassignment for any user without leaving the settings page
+- Role changes persist immediately to local store
 
 ## FlowGuide AI assistant
 
@@ -328,13 +347,105 @@ The right framing is:
 
 EasyFlow already implements the operating layer, workflow surface, AI layer, and architecture. Specific system integrations can be validated and extended in real customer environments without changing the core product idea.
 
-## Local development
+## Open-source setup
 
-### Web app
+EasyFlow is meant to be forked, extended, and adapted.
+
+If you want to use this project on your own machine, contribute new modules, improve the workflow engine, connect additional systems, or build your own product variant on top of it, the fastest path is:
+
+1. clone the repo
+2. configure the local environment
+3. run the web app
+4. optionally run the API, RabbitMQ, n8n, and local AI stack
+5. seed demo data so the UI has realistic workspaces
+
+## Prerequisites
+
+Minimum developer setup:
+
+- Node.js 20+
+- npm 10+
+- Python 3.11+
+- `uv` for the FastAPI app
+- PostgreSQL if you want persistent local data
+
+Optional local stack:
+
+- Docker + Docker Compose
+- RabbitMQ
+- n8n
+- Ollama for local AI
+
+## Quick start
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/achyutuni2001/EasyFlow.git
+cd EasyFlow
+```
+
+### 2. Install the web app dependencies
 
 ```bash
 cd apps/web
 npm install
+```
+
+### 3. Create local environment files
+
+Web app:
+
+```bash
+cp apps/web/.env.example apps/web/.env
+```
+
+API and shared services:
+
+```bash
+cp .env.example .env
+```
+
+### 4. Set the minimum values
+
+For the web app, the most important values are:
+
+- `NEXT_PUBLIC_APP_URL`
+- `BETTER_AUTH_URL`
+- `BETTER_AUTH_SECRET`
+- `PRISMA_DATABASE_URL`
+- `PRISMA_TENANT_DATABASE_URL`
+
+For the API/shared stack, the most important values are:
+
+- `PRISMA_DATABASE_URL`
+- `PRISMA_TENANT_DATABASE_URL`
+- `RABBITMQ_URL`
+- `WEBHOOK_SECRET_KEY`
+- `APP_PUBLIC_URL`
+- `PUBLIC_API_URL`
+
+If you are only running the frontend demo locally, you can start with:
+
+```env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=replace-with-32-byte-secret
+AI_PROVIDER=heuristic
+LOCAL_LLM_ENABLED=false
+```
+
+## Local development paths
+
+There are two useful ways to run EasyFlow locally.
+
+### Path A: product UI first
+
+Use this if you want to explore the UI, docs, pitch, tenant pages, and seeded demo experience with minimal setup.
+
+```bash
+cd apps/web
+npm run prisma:generate
 npm run dev
 ```
 
@@ -345,13 +456,237 @@ cd apps/web
 npm run dev:clean
 ```
 
-### API
+### Path B: fuller local stack
+
+Use this if you want the product UI plus the FastAPI backend, RabbitMQ event flow, webhook handling, or local automation services.
+
+Web app:
+
+```bash
+cd apps/web
+npm run prisma:generate
+npm run dev
+```
+
+API:
 
 ```bash
 cd apps/api
 uv sync
 uv run uvicorn app.main:app --reload
 ```
+
+## Database and Prisma setup
+
+If you want persistent local data instead of purely seeded in-memory/demo behavior, initialize Prisma first.
+
+From `apps/web`:
+
+```bash
+npm run prisma:generate
+npm run prisma:validate
+npm run prisma:push
+```
+
+Tenant schema generation is already included in `prisma:generate`.
+
+## Seed demo data
+
+The easiest way to make the app feel complete locally is to seed one of the built-in datasets.
+
+From `apps/web`:
+
+```bash
+npm run seed:demo
+```
+
+There is also a richer sample dataset:
+
+```bash
+npm run seed:dataco
+```
+
+These seeds populate demo tenants, products, orders, shipments, suppliers, approvals, and automation/risk-related records used across the UI.
+
+## Full self-hosted stack with Docker
+
+If you want the broader local platform, use the root `docker-compose.yml`.
+
+That stack includes:
+
+- PostgreSQL
+- RabbitMQ
+- n8n
+- the API service
+
+Run from the repo root:
+
+```bash
+docker compose up --build
+```
+
+Why this path exists:
+
+- RabbitMQ backs the event-driven workflow path
+- n8n provides the integration and automation bridge
+- the API receives inbound events and publishes operational work into the platform
+
+## Local AI setup
+
+EasyFlow can run without any paid AI dependency.
+
+The default safest local mode is:
+
+```env
+AI_PROVIDER=heuristic
+LOCAL_LLM_ENABLED=false
+```
+
+If you want local model-backed FlowGuide with Ollama:
+
+1. install Ollama
+2. pull the model you want
+3. enable the local provider
+
+Example:
+
+```bash
+ollama pull llama3.1:8b
+ollama pull nomic-embed-text
+```
+
+Then in `apps/web/.env`:
+
+```env
+AI_PROVIDER=ollama
+LOCAL_LLM_ENABLED=true
+LOCAL_LLM_BASE_URL=http://127.0.0.1:11434
+LOCAL_LLM_MODEL=llama3.1:8b
+LOCAL_EMBEDDING_MODEL=nomic-embed-text
+```
+
+Hosted provider options are also supported through the same abstraction layer:
+
+- OpenAI
+- Gemini
+
+Those are optional. The project does not require them to run.
+
+## Authentication notes
+
+The product uses `better-auth`.
+
+For local demo usage:
+
+- keep `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=false` unless you have a real Google OAuth setup
+- set a local `BETTER_AUTH_SECRET`
+
+If you want Google sign-in later, populate:
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+## Contributing
+
+Contributions are welcome if you want to:
+
+- improve the workflow canvas
+- add new tenant modules
+- improve synthetic/demo data realism
+- add connectors or n8n templates
+- extend FlowGuide and the MCP/LLM layer
+- improve docs, diagrams, or deployment paths
+
+Recommended contribution flow:
+
+1. fork the repo
+2. create a feature branch
+3. run the app locally
+4. keep changes scoped to one area
+5. verify the relevant scripts before opening a PR
+
+Suggested branch flow:
+
+```bash
+git checkout -b feature/your-change
+```
+
+Before opening a PR, verify what you changed.
+
+Frontend checks:
+
+```bash
+cd apps/web
+npx tsc --noEmit
+npm run build
+```
+
+API checks:
+
+```bash
+cd apps/api
+uv sync
+uv run uvicorn app.main:app --reload
+```
+
+Good contribution targets:
+
+- new workflow templates
+- additional connectors
+- better admin tooling
+- improved risk scoring logic
+- better tenant seed packs
+- AI provider integrations
+- bug fixes in public pages and product UI
+
+## Where to extend the product
+
+If you want to build on top of EasyFlow, these areas matter most:
+
+- `apps/web/app`
+  - routes, public pages, tenant pages, dashboards, workflows
+- `apps/web/components`
+  - reusable product UI
+- `apps/web/lib/assistant`
+  - FlowGuide, providers, MCP, retrieval, risk context
+- `apps/web/lib/automation`
+  - event simulation and automation behavior
+- `apps/web/lib/risk-signals.ts`
+  - derived operational risk signals
+- `apps/api/app`
+  - webhook ingestion, worker flow, messaging
+- `packages/engine`
+  - workflow execution
+- `packages/connectors`
+  - integration abstractions
+
+## How to contribute diagrams and docs
+
+If you extend the architecture or product story:
+
+- add or update diagrams in `public/`
+- add SVG app-facing diagrams in `apps/web/public/diagrams/`
+- update `README.md`
+- update `ARCHITECTURE.md` if the system model changes
+
+The current diagram set is meant to help future contributors understand the system quickly, so keeping it in sync is valuable work.
+
+## If you are forking this project
+
+Forking is a reasonable path if you want to:
+
+- adapt EasyFlow to a different vertical
+- build a private internal operations platform
+- test a different AI backend strategy
+- turn it into a healthcare, manufacturing, logistics, or enterprise workflow product
+
+Recommended first steps after forking:
+
+1. rename the branding assets
+2. update the public product pages
+3. replace the demo tenant seeds
+4. review environment variables
+5. decide whether your product is frontend-first, API-first, or fully self-hosted
 
 ## Related docs
 
