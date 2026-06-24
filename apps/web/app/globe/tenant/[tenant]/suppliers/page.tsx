@@ -17,6 +17,8 @@ const TT = {
   itemStyle:    { color: "rgba(255,255,255,0.85)" },
 };
 
+const BRAND_CYAN = "hsl(184,73%,61%)";
+
 const riskStyle: Record<string, string> = {
   "Low":      "bg-[hsl(82,78%,71%)]/10 text-[hsl(82,78%,71%)] border-[hsl(82,78%,71%)]/20",
   "Medium":   "bg-yellow-400/10 text-yellow-300 border-yellow-400/20",
@@ -58,7 +60,7 @@ export default function SuppliersPage({ params }: { params: { tenant: string } }
   return (
     <div className="space-y-7">
       <div>
-        <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(82,78%,71%)]">
+        <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(184,73%,61%)]">
           <BarChart3 className="h-3.5 w-3.5" /> Suppliers
         </div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenantName} — Suppliers</h1>
@@ -89,15 +91,15 @@ export default function SuppliersPage({ params }: { params: { tenant: string } }
             <AreaChart data={performanceTrend} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="supGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="hsl(82,78%,71%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(82,78%,71%)" stopOpacity={0}   />
+                  <stop offset="5%"  stopColor={BRAND_CYAN} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={BRAND_CYAN} stopOpacity={0}   />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis domain={[75, 100]} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip {...TT} />
-              <Area type="monotone" dataKey="fillRate" name="Fill Rate %" stroke="hsl(82,78%,71%)" fill="url(#supGrad)" strokeWidth={2} dot={false} />
+              <Area type="monotone" dataKey="fillRate" name="Fill Rate %" stroke={BRAND_CYAN} fill="url(#supGrad)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -112,7 +114,7 @@ export default function SuppliersPage({ params }: { params: { tenant: string } }
               <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip {...TT} />
               <Legend wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }} />
-              <Bar dataKey="fillRate" name="Fill Rate %" fill="hsl(82,78%,71%)"  opacity={0.75} radius={[4,4,0,0]} />
+              <Bar dataKey="fillRate" name="Fill Rate %" fill={BRAND_CYAN}  opacity={0.75} radius={[4,4,0,0]} />
               <Bar dataKey="leadTime" name="Lead Time (d)" fill="hsl(25,95%,63%)" opacity={0.65} radius={[4,4,0,0]} />
             </BarChart>
           </ResponsiveContainer>

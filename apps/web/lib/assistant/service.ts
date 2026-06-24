@@ -209,6 +209,8 @@ export async function handleAssistantRequest(rawBody: unknown, headers: Headers)
     question: request.question,
     dataset,
     documents,
+    mode: request.mode,
+    nodeContext: request.nodeContext,
   };
   const provider = getAssistantProvider();
   let generated;
@@ -221,10 +223,15 @@ export async function handleAssistantRequest(rawBody: unknown, headers: Headers)
   const response = assistantResponseSchema.parse({
     threadId,
     provider: generated.provider,
+    mode: generated.mode,
     answer: generated.answer,
     summary: generated.summary,
     followUps: generated.followUps,
     alerts: generated.alerts,
+    actions: generated.actions,
+    investigation: generated.investigation,
+    morningBrief: generated.morningBrief,
+    nodeInsight: generated.nodeInsight,
     citations: generated.citations.length ? generated.citations : fallbackCitations,
     groundedAt: new Date().toISOString(),
   });
@@ -237,9 +244,14 @@ export async function handleAssistantRequest(rawBody: unknown, headers: Headers)
     citations: response.citations,
     metadata: {
       provider: response.provider,
+      mode: response.mode,
       summary: response.summary,
       followUps: response.followUps,
       alerts: response.alerts,
+      actions: response.actions,
+      investigation: response.investigation,
+      morningBrief: response.morningBrief,
+      nodeInsight: response.nodeInsight,
     },
   });
 

@@ -16,6 +16,8 @@ const TT = {
   itemStyle:    { color: "rgba(255,255,255,0.85)" },
 };
 
+const BRAND_CYAN = "hsl(184,73%,61%)";
+
 const roleColour: Record<string, string> = {
   "Admin":    "bg-red-400/10 text-red-400 border-red-400/20",
   "Manager":  "bg-[hsl(25,95%,63%)]/10 text-[hsl(25,95%,63%)] border-[hsl(25,95%,63%)]/20",
@@ -46,7 +48,7 @@ export default function UsersPage({ params }: { params: { tenant: string } }) {
   return (
     <div className="space-y-7">
       <div>
-        <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(270,80%,70%)]">
+        <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(184,73%,61%)]">
           <Users className="h-3.5 w-3.5" /> Users
         </div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenant.name} — Users</h1>
@@ -79,7 +81,7 @@ export default function UsersPage({ params }: { params: { tenant: string } }) {
               <XAxis dataKey="role" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
               <Tooltip {...TT} />
-              <Bar dataKey="count" name="Users" fill="hsl(270,80%,70%)" opacity={0.75} radius={[4,4,0,0]} />
+              <Bar dataKey="count" name="Users" fill={BRAND_CYAN} opacity={0.75} radius={[4,4,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -93,7 +95,7 @@ export default function UsersPage({ params }: { params: { tenant: string } }) {
               <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
               <YAxis dataKey="dept" type="category" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={false} tickLine={false} width={80} />
               <Tooltip {...TT} />
-              <Bar dataKey="count" name="Users" fill="hsl(184,73%,61%)" opacity={0.7} radius={[0,4,4,0]} />
+              <Bar dataKey="count" name="Users" fill={BRAND_CYAN} opacity={0.7} radius={[0,4,4,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

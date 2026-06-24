@@ -36,6 +36,8 @@ const TT = {
   itemStyle: { color: "rgba(255,255,255,0.85)" },
 };
 
+const BRAND_CYAN = "hsl(184,73%,61%)";
+
 function formatTimestamp(value: string | Date) {
   const date = typeof value === "string" ? new Date(value) : value;
   return date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -118,7 +120,7 @@ export default function AutomationPage({ params }: { params: { tenant: string } 
     <div className="space-y-7">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(45,95%,65%)]">
+          <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(184,73%,61%)]">
             <Zap className="h-3.5 w-3.5" /> Automation
           </div>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenant.name} — Automation & Integration</h1>
@@ -208,7 +210,7 @@ export default function AutomationPage({ params }: { params: { tenant: string } 
               <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis dataKey="name" type="category" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 9 }} axisLine={false} tickLine={false} width={140} />
               <Tooltip {...TT} />
-              <Bar dataKey="runs" name="Executions" fill="hsl(45,95%,65%)" opacity={0.75} radius={[0, 4, 4, 0]} />
+              <Bar dataKey="runs" name="Executions" fill={BRAND_CYAN} opacity={0.75} radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -232,7 +234,7 @@ export default function AutomationPage({ params }: { params: { tenant: string } 
         <div className="rounded-[24px] border border-white/10 bg-white/[0.03] overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
-              <Zap className="h-4 w-4 text-[hsl(45,95%,65%)]" />
+              <Zap className="h-4 w-4 text-[hsl(184,73%,61%)]" />
               <span className="text-sm font-semibold text-white">Automation rules</span>
             </div>
             <div className="text-[0.65rem] uppercase tracking-[0.24em] text-white/30">{overview?.rules.length ?? 0} rules</div>

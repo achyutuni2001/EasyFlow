@@ -46,6 +46,15 @@ type RiskSnapshot = {
   };
   signals: RiskSignal[];
 };
+type MorningBrief = {
+  generatedFor: string;
+  headline: string;
+  topRisks: string[];
+  delayedShipments: string[];
+  lowStock: string[];
+  blockedApprovals: string[];
+  suggestedNextActions: string[];
+};
 
 const modules = [
   {
@@ -108,6 +117,7 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
   const [kpis, setKpis] = useState<KPI | null>(null);
   const [riskSnapshot, setRiskSnapshot] = useState<RiskSnapshot | null>(null);
+  const [morningBrief, setMorningBrief] = useState<MorningBrief | null>(null);
   const base = `/globe/tenant/${params.tenant}`;
 
   useEffect(() => {
@@ -127,6 +137,11 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
     fetch(`/api/tenant/${params.tenant}/risk-signals`)
       .then((r) => r.json())
       .then((d) => { if (Array.isArray(d?.signals)) setRiskSnapshot(d); })
+      .catch(() => {});
+
+    fetch(`/api/tenant/${params.tenant}/morning-brief`)
+      .then((r) => r.json())
+      .then((d) => { if (d?.headline) setMorningBrief(d); })
       .catch(() => {});
   }, [params.tenant]);
 
@@ -171,6 +186,15 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
 
         {/* RIGHT — KPI strip + Active Process */}
         <div className="flex flex-col gap-3 self-start">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[0.65rem] uppercase tracking-[0.38em] text-muted-foreground">Main KPIs</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                Core health, throughput, and exception metrics for the current tenant.
+              </div>
+            </div>
+          </div>
+
           {/* KPI strip */}
           {kpis ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -224,6 +248,54 @@ export default function TenantOverviewPage({ params }: { params: { tenant: strin
           </div>
         </div>
       </div>
+
+      {morningBrief && (
+        <div className="rounded-[22px] border border-border bg-card p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-[0.65rem] uppercase tracking-[0.38em] text-muted-foreground">Morning Operations Brief</div>
+              <div className="mt-1 text-sm font-medium text-foreground">{morningBrief.headline}</div>
+            </div>
+            <div className="rounded-full border border-[hsl(184,73%,61%)]/18 bg-[hsl(184,73%,61%)]/10 px-3 py-1 text-[0.62rem] uppercase tracking-[0.22em] text-[hsl(184,73%,61%)]">
+              FlowGuide brief
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1.35fr_1fr]">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                { label: "Top Risks", items: morningBrief.topRisks },
+                { label: "Delayed Shipments", items: morningBrief.delayedShipments },
+                { label: "Low Stock", items: morningBrief.lowStock },
+                { label: "Blocked Approvals", items: morningBrief.blockedApprovals },
+              ].map((group) => (
+                <div key={group.label} className="rounded-2xl border border-border bg-muted/40 px-3.5 py-3">
+                  <div className="text-[0.58rem] uppercase tracking-[0.22em] text-muted-foreground">{group.label}</div>
+                  <ul className="mt-2 space-y-1.5 text-[0.8rem] leading-6 text-muted-foreground">
+                    {group.items.length ? group.items.map((item) => <li key={item}>{item}</li>) : <li>None right now.</li>}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-2xl border border-border bg-muted/40 px-3.5 py-3">
+              <div className="text-[0.58rem] uppercase tracking-[0.22em] text-muted-foreground">Suggested Next Actions</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {morningBrief.suggestedNextActions.length ? (
+                  morningBrief.suggestedNextActions.map((item) => (
+                    <span
+                      key={item}
+                      className="rounded-full border border-[hsl(184,73%,61%)]/18 bg-[hsl(184,73%,61%)]/10 px-3 py-1 text-[0.72rem] text-[hsl(184,73%,61%)]"
+                    >
+                      {item}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">No urgent next actions right now.</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-5">
         <div className="rounded-[20px] border border-border bg-card p-4">

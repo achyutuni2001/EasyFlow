@@ -21,9 +21,12 @@ export function useTheme() {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
-  // Always dark mode
   useEffect(() => {
+    setTheme("dark");
     applyTheme("dark");
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("easyflow-theme", "dark");
+    }
   }, []);
 
   function applyTheme(t: Theme) {
@@ -38,10 +41,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   function toggle() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    applyTheme(next);
-    localStorage.setItem("easyflow-theme", next);
+    setTheme("dark");
+    applyTheme("dark");
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("easyflow-theme", "dark");
+    }
   }
 
   return (
