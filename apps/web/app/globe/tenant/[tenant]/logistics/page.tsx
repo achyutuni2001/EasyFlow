@@ -14,6 +14,8 @@ const TT = {
   itemStyle:    { color: "rgba(255,255,255,0.85)" },
 };
 
+const BRAND_CYAN = "hsl(184,73%,61%)";
+
 const statusStyle: Record<string, string> = {
   "Delivered":      "bg-[hsl(82,78%,71%)]/10 text-[hsl(82,78%,71%)] border-[hsl(82,78%,71%)]/20",
   "On Schedule":    "bg-[hsl(184,73%,61%)]/10 text-[hsl(184,73%,61%)] border-[hsl(184,73%,61%)]/20",
@@ -67,7 +69,7 @@ export default function LogisticsPage({ params }: { params: { tenant: string } }
   return (
     <div className="space-y-7">
       <div>
-        <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(25,95%,63%)]">
+        <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(184,73%,61%)]">
           <Truck className="h-3.5 w-3.5" /> Logistics
         </div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenantName} — Logistics</h1>
@@ -97,15 +99,15 @@ export default function LogisticsPage({ params }: { params: { tenant: string } }
             <AreaChart data={routeEfficiency} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="logGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="hsl(25,95%,63%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(25,95%,63%)" stopOpacity={0}   />
+                  <stop offset="5%"  stopColor={BRAND_CYAN} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={BRAND_CYAN} stopOpacity={0}   />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis domain={[60, 100]} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip {...TT} />
-              <Area type="monotone" dataKey="onTime" name="On-Time %" stroke="hsl(25,95%,63%)" fill="url(#logGrad)" strokeWidth={2} dot={false} />
+              <Area type="monotone" dataKey="onTime" name="On-Time %" stroke={BRAND_CYAN} fill="url(#logGrad)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -119,7 +121,7 @@ export default function LogisticsPage({ params }: { params: { tenant: string } }
               <XAxis dataKey="status" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip {...TT} />
-              <Bar dataKey="count" name="Shipments" fill="hsl(184,73%,61%)" opacity={0.7} radius={[4,4,0,0]} />
+              <Bar dataKey="count" name="Shipments" fill={BRAND_CYAN} opacity={0.7} radius={[4,4,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

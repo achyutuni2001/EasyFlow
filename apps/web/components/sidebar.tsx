@@ -3,6 +3,9 @@
 import {
   BarChart3,
   Boxes,
+  ChevronLeft,
+  ChevronRight,
+  Globe2,
   LayoutDashboard,
   Network,
   Package,
@@ -17,6 +20,7 @@ import {
   Zap,
   DollarSign,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -56,6 +60,7 @@ type SidebarProps = {
   collapsed?: boolean;
   mobileOpen?: boolean;
   onClose?: () => void;
+  onCollapse?: () => void;
 };
 
 export function Sidebar({
@@ -63,6 +68,7 @@ export function Sidebar({
   collapsed = false,
   mobileOpen = false,
   onClose,
+  onCollapse,
 }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -104,7 +110,7 @@ export function Sidebar({
           {/* Desktop collapsed → compact logo mark */}
           <div className={cn("hidden", collapsed && "md:flex md:items-center md:justify-center md:py-1")}>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-secondary/10">
-              <LogoMark className="h-6 w-6" />
+              <LogoMark className="h-5 w-5" />
             </div>
           </div>
 
@@ -113,7 +119,7 @@ export function Sidebar({
             <div className="text-[0.66rem] uppercase tracking-[0.24em] text-secondary/80">
               Supply Chain Coordination
             </div>
-            <LogoWordmark className="mt-3 h-11 w-[220px]" />
+            <LogoWordmark className="mt-3 h-24 w-[260px]" />
             <p className="mt-3 max-w-[15rem] text-[0.92rem] leading-7 text-muted-foreground/90 hidden md:block">
               Approvals, replenishment, and shipment follow-up in one operational view.
             </p>
@@ -121,6 +127,22 @@ export function Sidebar({
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-hide space-y-0">
+
+        {/* Globe home link */}
+        <div className={cn("mb-2", collapsed && "md:mb-1")}>
+          <Link
+            href="/globe"
+            className={cn(
+              "flex items-center rounded-2xl border text-sm font-medium transition-colors gap-3 px-4 py-3",
+              collapsed && "md:justify-center md:px-0 md:py-3",
+              "border-white/10 bg-white/5 text-secondary hover:bg-white/10"
+            )}
+          >
+            <Globe2 className="h-4 w-4 shrink-0" />
+            <span className={cn(collapsed && "md:hidden")}>Tenant Workspaces</span>
+          </Link>
+        </div>
+
         <nav className="grid gap-1.5">
           {navItems.map((item) => {
             const hrefWithTenant = tenantQuery && item.href !== "/globe"
@@ -266,6 +288,22 @@ export function Sidebar({
             <Settings className="h-4 w-4 shrink-0" />
             <span className={cn(collapsed && "md:hidden")}>Settings</span>
           </a>
+
+          {/* Collapse toggle — desktop only */}
+          {onCollapse && (
+            <button
+              type="button"
+              onClick={onCollapse}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className={cn(
+                "mt-2 hidden md:flex items-center rounded-2xl border border-transparent text-sm font-medium transition-colors gap-3 px-4 py-3 text-muted-foreground hover:border-white/10 hover:bg-white/5 hover:text-foreground w-full",
+                collapsed && "md:justify-center md:px-0"
+              )}
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : <ChevronLeft className="h-4 w-4 shrink-0" />}
+              <span className={cn(collapsed && "md:hidden")}>Collapse</span>
+            </button>
+          )}
         </div>
 
       </aside>

@@ -22,7 +22,7 @@ const highlights = [
   },
   {
     title: "Predictive risk intelligence",
-    body: "Stockout risk, supplier delay probability, and order slip forecasts appear live on the canvas so teams see problems before they become disruptions.",
+    body: "Stockout risk, supplier delay probability, and demand forecasts are scoped to each tenant — no company ever sees another's signals. Forward-looking charts appear on the canvas and in the tenant-isolated Forecasting view.",
     icon: DatabaseZap,
   },
   {
@@ -120,6 +120,30 @@ const docsLinks = [
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden">
+      <style>{`
+        @keyframes heroTraceLeft {
+          0% { transform: translateX(-180px) scaleX(0.18); opacity: 0; }
+          18% { opacity: 0.75; }
+          46% { transform: translateX(0px) scaleX(1); opacity: 0.55; }
+          100% { transform: translateX(28px) scaleX(0.62); opacity: 0; }
+        }
+        @keyframes heroTraceRight {
+          0% { transform: translateX(180px) scaleX(0.18); opacity: 0; }
+          16% { opacity: 0.65; }
+          44% { transform: translateX(0px) scaleX(1); opacity: 0.5; }
+          100% { transform: translateX(-24px) scaleX(0.55); opacity: 0; }
+        }
+        @keyframes heroTraceUnder {
+          0% { transform: translateX(-120px) scaleX(0.2); opacity: 0; }
+          24% { opacity: 0.55; }
+          52% { transform: translateX(0px) scaleX(1); opacity: 0.42; }
+          100% { transform: translateX(54px) scaleX(0.72); opacity: 0; }
+        }
+        @keyframes heroLogoFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-2px); }
+        }
+      `}</style>
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-0"
@@ -136,46 +160,66 @@ export default function LandingPage() {
       <PublicSiteHeader variant="dark" current="landing" />
 
       <main className="relative z-10">
-        <section id="idea" className="relative mx-auto min-h-[calc(100svh-73px)] max-w-6xl overflow-visible px-6 pb-10 pt-10 md:px-10 md:pb-14 md:pt-12">
-          <div className="absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 -translate-y-10 md:-translate-y-8">
+        <section id="idea" className="relative mx-auto min-h-[calc(100svh-64px)] max-w-6xl overflow-hidden px-4 pb-8 pt-20 md:min-h-[calc(100svh-73px)] md:overflow-visible md:px-10 md:pb-14 md:pt-12">
+          <div className="absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 -translate-y-4 md:-translate-y-8">
             <SupplyChainBg />
           </div>
-          <div className="relative z-10 mx-auto flex min-h-[calc(100svh-73px-2.5rem)] max-w-3xl items-center text-center md:min-h-[calc(100svh-73px-3rem)]">
+          <div className="relative z-10 mx-auto flex min-h-[calc(100svh-64px-5rem)] max-w-3xl items-start pt-10 text-center md:min-h-[calc(100svh-73px-3rem)] md:items-center md:pt-0">
             <div className="w-full">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(184,73%,61%)]/20 bg-[hsl(184,73%,61%)]/8 px-2.5 py-0.5 text-[0.52rem] font-medium uppercase tracking-[0.2em] text-[hsl(184,73%,61%)] md:text-[0.56rem]">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(184,73%,61%)]/20 bg-[hsl(184,73%,61%)]/8 px-2 py-0.5 text-[0.46rem] font-medium uppercase tracking-[0.16em] text-[hsl(184,73%,61%)] md:px-2.5 md:text-[0.56rem]">
               <Globe2 className="h-2.5 w-2.5" />
               Supply chain coordination layer
             </div>
-            <div className="mt-5 flex justify-center">
-              <LogoWordmark
-                centered
-                hero
-                className="h-[6.5rem] w-[560px] md:h-[8rem] md:w-[760px] lg:h-[9rem] lg:w-[900px]"
-              />
+            <div className="mt-4 flex justify-center md:mt-5">
+              <div
+                className="relative h-[4.4rem] w-[320px] md:h-[8rem] md:w-[760px] lg:h-[9rem] lg:w-[900px]"
+                style={{ animation: "heroLogoFloat 7.2s ease-in-out infinite" }}
+              >
+                <div className="pointer-events-none absolute inset-0">
+                  <span
+                    className="absolute left-[14%] top-[48%] h-[2px] w-[22%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(89,225,217,0.82),transparent)] blur-[1px]"
+                    style={{ animation: "heroTraceLeft 5.8s ease-out infinite" }}
+                  />
+                  <span
+                    className="absolute right-[13%] top-[34%] h-[2px] w-[18%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(89,225,217,0.68),transparent)] blur-[1px]"
+                    style={{ animation: "heroTraceRight 6.4s ease-out infinite 0.7s" }}
+                  />
+                  <span
+                    className="absolute left-[24%] bottom-[24%] h-[2px] w-[30%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(89,225,217,0.6),transparent)] blur-[1px]"
+                    style={{ animation: "heroTraceUnder 6.8s ease-out infinite 1.2s" }}
+                  />
+                </div>
+                <LogoWordmark
+                  centered
+                  hero
+                  glow
+                  className="h-full w-full"
+                />
+              </div>
             </div>
-            <p className="mt-4 text-[0.74rem] font-medium uppercase tracking-[0.17em] text-white/30 md:text-[0.8rem]">
+            <p className="mt-3 text-[0.64rem] font-medium uppercase tracking-[0.12em] text-white/30 md:mt-4 md:text-[0.8rem] md:tracking-[0.17em]">
               Easy insights. Clear visibility. Faster decisions.
             </p>
-            <p className="mx-auto mt-5 max-w-4xl text-[0.92rem] leading-7 text-white/50">
+            <p className="mx-auto mt-4 max-w-[20rem] text-[0.88rem] leading-7 text-white/50 md:mt-5 md:max-w-4xl md:text-[0.92rem]">
               A visual operating layer for supply chain teams. Turn raw operational data into clear actions.
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <div className="mx-auto mt-6 flex w-full max-w-[18rem] flex-col items-center justify-center gap-3 md:mt-8 md:max-w-none md:flex-row md:flex-wrap">
               <Link
                 href="/globe"
-                className="inline-flex items-center gap-2 rounded-full bg-[hsl(184,73%,61%)] px-6 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-105"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[hsl(184,73%,61%)] px-6 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-105 md:w-auto"
               >
                 Enter the app <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/docs/project-vision"
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/70 transition hover:border-white/20 hover:bg-white/8 hover:text-white"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/70 transition hover:border-white/20 hover:bg-white/8 hover:text-white md:w-auto"
               >
                 Read the project vision
               </Link>
             </div>
           </div>
           </div>
-          <div className="absolute bottom-[36px] left-1/2 z-10 w-screen max-w-none -translate-x-1/2 opacity-55 md:bottom-[42px]">
+          <div className="absolute bottom-[20px] left-1/2 z-10 hidden w-screen max-w-none -translate-x-1/2 opacity-55 md:bottom-[42px] md:block">
             <TruckLoader />
           </div>
         </section>

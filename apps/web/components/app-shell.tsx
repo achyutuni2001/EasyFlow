@@ -26,6 +26,7 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
             collapsed={sidebarCollapsed}
             mobileOpen={mobileOpen}
             onClose={() => setMobileOpen(false)}
+            onCollapse={() => setSidebarCollapsed((c) => !c)}
           />
         </Suspense>
         <div className="min-w-0 flex-1 md:pl-0">

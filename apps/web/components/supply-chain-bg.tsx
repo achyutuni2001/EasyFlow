@@ -129,7 +129,7 @@ export function SupplyChainBg() {
 
         {/* Factory RIGHT */}
         <svg width="210" height="224" viewBox="0 0 210 230"
-          className="absolute"
+          className="absolute hidden md:block"
           style={{
             right: 0,
             top: "clamp(92px, 14vh, 160px)",
@@ -243,7 +243,7 @@ export function SupplyChainBg() {
 
         {/* ─── GANTRY / PORT CRANE — moved to the ship edge to avoid overlapping the hull ── */}
         <svg width="116" height="232" viewBox="0 0 160 320"
-          className="absolute"
+          className="absolute hidden md:block"
           style={{
             bottom: 0,
             left: 76,

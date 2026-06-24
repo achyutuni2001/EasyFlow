@@ -6,6 +6,8 @@ import { AppShell } from "../../../components/app-shell";
 import { NodeDetail } from "../../../components/node-detail";
 import { STORAGE_KEY, initialProcesses } from "../../../components/process-builder";
 import type { TenantProcess, ProcessNode } from "../../../components/process-builder";
+import { TenantCopilot } from "@/components/tenant-copilot";
+import { tenantNameToSlug } from "@/lib/canvas-risk";
 
 function getAllProcesses(): TenantProcess[] {
   if (typeof window === "undefined") return initialProcesses;
@@ -74,19 +76,34 @@ export default function NodeDetailPage() {
   const allEdges = processes.flatMap((p) => p.edges);
 
   return (
-    <AppShell
-      title={foundNode.label}
-      subtitle={`${foundProcess.tenantName} · ${foundProcess.processName}`}
-    >
-      <div className="mb-4">
-        <a href={returnTo} className="text-sm text-secondary hover:underline">← Back</a>
-      </div>
-      <NodeDetail
-        node={foundNode}
-        process={foundProcess}
-        allEdges={allEdges}
-        allNodes={allNodes}
+    <>
+      <AppShell
+        title={foundNode.label}
+        subtitle={`${foundProcess.tenantName} · ${foundProcess.processName}`}
+      >
+        <div className="mb-4">
+          <a href={returnTo} className="text-sm text-secondary hover:underline">← Back</a>
+        </div>
+        <NodeDetail
+          node={foundNode}
+          process={foundProcess}
+          allEdges={allEdges}
+          allNodes={allNodes}
+        />
+      </AppShell>
+      <TenantCopilot
+        tenantSlug={tenantNameToSlug(foundProcess.tenantName)}
+        tenantName={foundProcess.tenantName}
+        nodeContext={{
+          nodeId: foundNode.id,
+          nodeLabel: foundNode.label,
+          nodeType: foundNode.type,
+          owner: foundNode.owner,
+          location: foundNode.location,
+          description: foundNode.description,
+          processName: foundProcess.processName,
+        }}
       />
-    </AppShell>
+    </>
   );
 }

@@ -3,20 +3,41 @@ import { createAgent } from "langchain";
 import { z } from "zod";
 
 import {
+  assistantActionSchema,
   assistantAlertSchema,
   assistantCitationSchema,
+  assistantInvestigationSchema,
+  assistantMorningBriefSchema,
+  assistantNodeInsightSchema,
+  type AssistantActionRecord,
   type AssistantAlertRecord,
   type AssistantCitationRecord,
+  type AssistantInvestigationRecord,
+  type AssistantMorningBriefRecord,
+  type AssistantNodeContextRecord,
+  type AssistantNodeInsightRecord,
 } from "@/lib/db/zod/assistant";
 import { createTenantMcpSession } from "@/lib/assistant/mcp";
 import type { KnowledgeDocument, TenantDataset } from "@/lib/assistant/knowledge-base";
 import { detectAssistantIntent, retrieveRelevantDocuments } from "@/lib/assistant/retrieval";
+import {
+  buildActionProposals,
+  buildInvestigation,
+  buildMorningBrief,
+  buildNodeInsight,
+  buildReasonedAlerts,
+} from "@/lib/assistant/agentic";
 
 const structuredCopilotSchema = z.object({
+  mode: z.enum(["answer", "investigation", "brief", "node"]).default("answer"),
   answer: z.string().min(1),
   summary: z.array(z.string()).max(6).default([]),
   followUps: z.array(z.string()).max(4).default([]),
   alerts: z.array(assistantAlertSchema).max(5).default([]),
+  actions: z.array(assistantActionSchema).max(4).default([]),
+  investigation: assistantInvestigationSchema.optional(),
+  morningBrief: assistantMorningBriefSchema.optional(),
+  nodeInsight: assistantNodeInsightSchema.optional(),
   citations: z.array(assistantCitationSchema.omit({ score: true })).max(6).default([]),
 });
 
@@ -26,14 +47,21 @@ type ProviderInput = {
   question: string;
   dataset: TenantDataset;
   documents: KnowledgeDocument[];
+  mode?: "chat" | "investigate" | "node";
+  nodeContext?: AssistantNodeContextRecord;
 };
 
 type ProviderOutput = {
   provider: string;
+  mode: "answer" | "investigation" | "brief" | "node";
   answer: string;
   summary: string[];
   followUps: string[];
   alerts: AssistantAlertRecord[];
+  actions: AssistantActionRecord[];
+  investigation?: AssistantInvestigationRecord;
+  morningBrief?: AssistantMorningBriefRecord;
+  nodeInsight?: AssistantNodeInsightRecord;
   citations: AssistantCitationRecord[];
 };
 
@@ -93,10 +121,103 @@ function normalizeCitations(
 function heuristicAnswer(input: ProviderInput): ProviderOutput {
   const intent = detectAssistantIntent(input.question);
   const { dataset, tenantName, documents } = input;
-  const alerts: AssistantAlertRecord[] = [];
+  const alerts: AssistantAlertRecord[] = buildReasonedAlerts(dataset).slice(0, 5);
   let answer = "";
   let summary: string[] = [];
   let followUps: string[] = [];
+  let mode: ProviderOutput["mode"] = "answer";
+  let actions: AssistantActionRecord[] = [];
+  let investigation: AssistantInvestigationRecord | undefined;
+  let morningBrief: AssistantMorningBriefRecord | undefined;
+  let nodeInsight: AssistantNodeInsightRecord | undefined;
+
+  if (input.mode === "node" && input.nodeContext) {
+    nodeInsight = buildNodeInsight(dataset, input.nodeContext);
+    actions = buildActionProposals(dataset, "node");
+    mode = "node";
+    answer = `${nodeInsight.explanation} Current health is ${nodeInsight.currentHealth}.`;
+    summary = [
+      `Current health: ${nodeInsight.currentHealth}`,
+      ...nodeInsight.upstreamRisks.slice(0, 2),
+      ...nodeInsight.downstreamRisks.slice(0, 2),
+    ].slice(0, 5);
+    followUps = [
+      `Investigate ${input.nodeContext.nodeLabel} further`,
+      `What downstream steps depend on ${input.nodeContext.nodeLabel}?`,
+    ];
+
+    return {
+      provider: "heuristic-local",
+      mode,
+      answer,
+      summary,
+      followUps,
+      alerts,
+      actions,
+      investigation,
+      morningBrief,
+      nodeInsight,
+      citations: fallbackCitations(input.question, documents),
+    };
+  }
+
+  if (/morning brief|daily brief|operations brief|start of day/i.test(input.question)) {
+    morningBrief = buildMorningBrief(dataset);
+    actions = buildActionProposals(dataset, "overview");
+    mode = "brief";
+    answer = morningBrief.headline;
+    summary = [
+      ...morningBrief.topRisks.slice(0, 2),
+      ...morningBrief.suggestedNextActions.slice(0, 2),
+    ].slice(0, 4);
+    followUps = [
+      "Investigate the highest-risk item",
+      "Which shipments are delayed?",
+      "What approvals are blocked?",
+    ];
+
+    return {
+      provider: "heuristic-local",
+      mode,
+      answer,
+      summary,
+      followUps,
+      alerts,
+      actions,
+      investigation,
+      morningBrief,
+      nodeInsight,
+      citations: fallbackCitations(input.question, documents),
+    };
+  }
+
+  if (input.mode === "investigate" || /why|investigate|root cause|what changed/i.test(input.question)) {
+    investigation = buildInvestigation(dataset, input.question);
+    if (investigation) {
+      mode = "investigation";
+      actions = buildActionProposals(dataset, "investigation");
+      answer = investigation.summary;
+      summary = [...investigation.findings.slice(0, 3), ...(investigation.rootCauses.slice(0, 2))].slice(0, 5);
+      followUps = [
+        "Escalate the highest-risk issue",
+        "Show affected shipments and approvals together",
+      ];
+
+      return {
+        provider: "heuristic-local",
+        mode,
+        answer,
+        summary,
+        followUps,
+        alerts,
+        actions,
+        investigation,
+        morningBrief,
+        nodeInsight,
+        citations: fallbackCitations(input.question, documents),
+      };
+    }
+  }
 
   if (intent === "purchase_order") {
     const match = input.question.toUpperCase().match(/PO-\d{2,6}/)?.[0];
@@ -118,6 +239,7 @@ function heuristicAnswer(input: ProviderInput): ProviderOutput {
         alerts.push(createAlert(po.status === "Escalated" ? "high" : "medium", `PO ${po.id}`, `Current status is ${po.status}.`));
       }
       followUps = [`Show approvals related to ${po.id}`, `List supplier risks for ${po.supplier}`];
+      actions = buildActionProposals(dataset, "approvals");
     }
   } else if (intent === "restock") {
     const atRisk = dataset.inventory.skus
@@ -140,6 +262,7 @@ function heuristicAnswer(input: ProviderInput): ProviderOutput {
       )
     );
     followUps = ["Which suppliers are tied to these SKUs?", "Show low-stock shipments and approvals together"];
+    actions = buildActionProposals(dataset, "restock");
   } else if (intent === "approvals") {
     const pending = dataset.procurement.approvals
       .slice()
@@ -161,6 +284,7 @@ function heuristicAnswer(input: ProviderInput): ProviderOutput {
       )
     );
     followUps = ["Show approvals by department", "Which purchase orders are blocked by these approvals?"];
+    actions = buildActionProposals(dataset, "approvals");
   } else if (intent === "shipments") {
     const delayed = dataset.logistics.shipments.filter((shipment) => ["Delayed", "On Hold", "Exception"].includes(shipment.status)).slice(0, 5);
 
@@ -179,6 +303,7 @@ function heuristicAnswer(input: ProviderInput): ProviderOutput {
       )
     );
     followUps = ["Show carrier performance for delayed shipments", "Which customers or orders are affected?"];
+    actions = buildActionProposals(dataset, "shipments");
   } else if (intent === "suppliers") {
     const riskySuppliers = dataset.suppliers.suppliers
       .filter((supplier) => ["High", "Critical", "Medium"].includes(supplier.riskLevel))
@@ -199,6 +324,7 @@ function heuristicAnswer(input: ProviderInput): ProviderOutput {
       )
     );
     followUps = ["Which workflows depend on these suppliers?", "Show supplier performance trend"];
+    actions = buildActionProposals(dataset, "suppliers");
   } else if (intent === "exceptions") {
     const lowStock = dataset.inventory.skus.filter((sku) => ["Critical", "Low Stock"].includes(sku.status)).slice(0, 3);
     const delayed = dataset.logistics.shipments.filter((shipment) => ["Delayed", "On Hold", "Exception"].includes(shipment.status)).slice(0, 3);
@@ -221,6 +347,7 @@ function heuristicAnswer(input: ProviderInput): ProviderOutput {
       ...waiting.map((approval) => createAlert(toNumber(approval.waiting) >= 8 ? "high" : "medium", approval.id, `Waiting ${approval.waiting}`))
     );
     followUps = ["Show the highest-risk items only", "Which issues are likely to affect next-week service levels?"];
+    actions = buildActionProposals(dataset, "overview");
   } else {
     answer = `${tenantName} is operating with a health score of ${dataset.kpis.healthScore}% and current pressure across approvals, stock alerts, and shipments. The retrieved tenant data suggests the clearest next actions are around the highest-risk exceptions.`;
     summary = [
@@ -234,14 +361,20 @@ function heuristicAnswer(input: ProviderInput): ProviderOutput {
       createAlert(dataset.kpis.delayedShipments > 4 ? "high" : "medium", "Shipment risk", `${dataset.kpis.delayedShipments} delayed shipments.`)
     );
     followUps = ["What needs attention right now?", "Which approvals are pending today?", "Which SKUs should we restock this week?"];
+    actions = buildActionProposals(dataset, "overview");
   }
 
   return {
     provider: "heuristic-local",
+    mode,
     answer,
     summary,
     followUps,
     alerts: alerts.slice(0, 5),
+    actions,
+    investigation,
+    morningBrief,
+    nodeInsight,
     citations: fallbackCitations(input.question, documents),
   };
 }
@@ -275,7 +408,7 @@ function buildContextPrompt(input: ProviderInput) {
       "You are EasyFlow Copilot, a supply chain operations assistant.",
       "You answer using only the current tenant context supplied to you.",
       "Never invent cross-tenant data, hidden records, or unsupported metrics.",
-      "Return valid JSON only with keys: answer, summary, followUps, alerts, citations.",
+      "Return valid JSON only with keys: mode, answer, summary, followUps, alerts, actions, investigation, morningBrief, nodeInsight, citations.",
       "Each citation must include sourceType, sourceId, title, and excerpt only if that source appears in the provided context.",
       "If the provided context is insufficient, say so plainly.",
     ].join("\n"),
@@ -359,13 +492,18 @@ abstract class ContextBackedAssistantProvider implements AssistantProvider {
     const structured = parseStructuredResponse(raw);
 
     return {
-      provider: this.providerLabel,
-      answer: structured.answer,
-      summary: structured.summary,
-      followUps: structured.followUps,
-      alerts: structured.alerts,
-      citations: normalizeCitations(input.question, input.documents, structured.citations),
-    };
+        provider: this.providerLabel,
+        mode: structured.mode,
+        answer: structured.answer,
+        summary: structured.summary,
+        followUps: structured.followUps,
+        alerts: structured.alerts,
+        actions: structured.actions,
+        investigation: structured.investigation,
+        morningBrief: structured.morningBrief,
+        nodeInsight: structured.nodeInsight,
+        citations: normalizeCitations(input.question, input.documents, structured.citations),
+      };
   }
 }
 
@@ -473,10 +611,15 @@ class LangChainMcpAssistantProvider implements AssistantProvider {
 
       return {
         provider: `langchain-mcp:ollama:${modelName}`,
+        mode: structured.mode,
         answer: structured.answer,
         summary: structured.summary,
         followUps: structured.followUps,
         alerts: structured.alerts,
+        actions: structured.actions,
+        investigation: structured.investigation,
+        morningBrief: structured.morningBrief,
+        nodeInsight: structured.nodeInsight,
         citations: normalizeCitations(input.question, input.documents, structured.citations),
       };
     } finally {

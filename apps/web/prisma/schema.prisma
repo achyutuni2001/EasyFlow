@@ -28,6 +28,8 @@ model Tenant {
   assistantThreads AssistantThread[]
   assistantMessages AssistantMessage[]
   assistantDocuments AssistantDocument[]
+  assistantActionTasks AssistantActionTask[]
+  assistantActionActivities AssistantActionActivity[]
   orders           TenantOrder[]
   products         TenantProduct[]
   shipments        TenantShipment[]
@@ -92,6 +94,8 @@ model AssistantThread {
   tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdByUser   AppUser?           @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
   messages        AssistantMessage[]
+  actionTasks     AssistantActionTask[]
+  actionActivities AssistantActionActivity[]
 
   @@index([tenantId, updatedAt])
   @@map("assistant_threads")
@@ -134,6 +138,49 @@ model AssistantDocument {
   @@index([tenantId, sourceType])
   @@index([tenantId, updatedAt])
   @@map("assistant_documents")
+}
+
+model AssistantActionTask {
+  id                   String           @id @default(cuid()) @db.VarChar(64)
+  tenantId             String           @map("tenant_id") @db.VarChar(64)
+  threadId             String?          @map("thread_id") @db.VarChar(64)
+  actionId             String           @map("action_id") @db.VarChar(128)
+  actionType           String           @map("action_type") @db.VarChar(64)
+  title                String           @db.VarChar(160)
+  detail               String
+  targetType           String           @map("target_type") @db.VarChar(64)
+  targetId             String           @map("target_id") @db.VarChar(128)
+  status               String           @default("confirmed") @db.VarChar(32)
+  requiresConfirmation Boolean          @default(true) @map("requires_confirmation")
+  confirmedAt          DateTime         @default(now()) @map("confirmed_at")
+  completedAt          DateTime?        @map("completed_at")
+  metadata             Json?
+  tenant               Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  thread               AssistantThread? @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  activities           AssistantActionActivity[]
+
+  @@index([tenantId, confirmedAt])
+  @@index([tenantId, status])
+  @@map("assistant_action_tasks")
+}
+
+model AssistantActionActivity {
+  id        String              @id @default(cuid()) @db.VarChar(64)
+  tenantId  String              @map("tenant_id") @db.VarChar(64)
+  threadId  String?             @map("thread_id") @db.VarChar(64)
+  taskId    String?             @map("task_id") @db.VarChar(64)
+  kind      String              @db.VarChar(64)
+  title     String              @db.VarChar(160)
+  detail    String
+  metadata  Json?
+  createdAt DateTime            @default(now()) @map("created_at")
+  tenant    Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  thread    AssistantThread?    @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  task      AssistantActionTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, kind])
+  @@map("assistant_action_activities")
 }
 
 model AutomationEvent {

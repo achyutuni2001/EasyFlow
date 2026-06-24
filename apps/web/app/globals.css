@@ -66,13 +66,76 @@
     @apply border-border;
   }
 
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   html {
     scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(130, 214, 225, 0.56) transparent;
   }
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
     font-family: var(--font-body);
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: transparent;
+    border-left: 0;
+    box-shadow: none;
+  }
+
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background:
+      linear-gradient(180deg, rgba(148, 233, 244, 0.82), rgba(89, 225, 217, 0.38)) padding-box,
+      linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05)) border-box;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.26),
+      0 0 16px rgba(89, 225, 217, 0.16);
+    backdrop-filter: blur(10px);
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background:
+      linear-gradient(180deg, rgba(125, 242, 236, 0.9), rgba(89, 225, 217, 0.56)) padding-box,
+      linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.1)) border-box;
+  }
+
+  html.light {
+    scrollbar-color: rgba(34, 211, 238, 0.58) transparent;
+  }
+
+  html.light::-webkit-scrollbar-track,
+  html.light body::-webkit-scrollbar-track {
+    background: transparent;
+    border-left: 0;
+    box-shadow: none;
+  }
+
+  html.light::-webkit-scrollbar-thumb,
+  html.light body::-webkit-scrollbar-thumb {
+    background:
+      linear-gradient(180deg, rgba(125, 242, 236, 0.8), rgba(34, 211, 238, 0.34)) padding-box,
+      linear-gradient(180deg, rgba(255,255,255,0.68), rgba(255,255,255,0.3)) border-box;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.52),
+      0 0 12px rgba(34, 211, 238, 0.12);
   }
 
   /* Dark body gradient */

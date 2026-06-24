@@ -112,12 +112,9 @@ export default function ConnectorsPage() {
       <div className="relative z-10">
         <PublicSiteHeader variant="dark" current="connectors" />
 
-        <main className="px-6 pb-20 pt-14 md:px-10">
+        <main className="px-6 pb-20 pt-28 md:px-10 md:pt-32">
           <section className="mx-auto max-w-7xl">
             <div className="text-center">
-              <div className="mx-auto inline-flex items-center rounded-full border border-[hsl(184,73%,61%,0.2)] bg-[hsl(184,73%,61%,0.07)] px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.35em] text-[hsl(184,73%,61%)]">
-                Connectors
-              </div>
               <h1 className="mt-6 text-[3rem] font-medium leading-[0.96] tracking-[-0.05em] text-white md:text-[5rem]">
                 Connectors
               </h1>

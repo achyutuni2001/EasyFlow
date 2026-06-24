@@ -4,11 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Bot, Loader2, MessageSquare, Send, Sparkles, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type { AssistantResponse } from "@/lib/db/zod/assistant";
+import type { AssistantActionRecord, AssistantNodeContextRecord, AssistantResponse } from "@/lib/db/zod/assistant";
 
 type TenantCopilotProps = {
   tenantSlug: string;
   tenantName: string;
+  nodeContext?: AssistantNodeContextRecord;
 };
 
 type ChatMessage =
@@ -20,6 +21,8 @@ const samplePrompts = [
   "What approvals are pending today?",
   "Which shipments are delayed?",
   "What exceptions need attention right now?",
+  "Give me the morning operations brief.",
+  "Investigate the highest-risk issue.",
 ];
 
 const assistantPersona = {
@@ -30,7 +33,7 @@ const assistantPersona = {
 
 const introStorageKey = "easyflow.flowguide.intro-seen";
 
-export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
+export function TenantCopilot({ tenantSlug, tenantName, nodeContext }: TenantCopilotProps) {
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,12 +41,27 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [actionStatus, setActionStatus] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const canSend = question.trim().length >= 3 && !loading;
   const welcomeText = useMemo(
-    () => `Hi, I’m ${assistantPersona.name}. I can help with ${tenantName}'s day-to-day operations.`,
-    [tenantName]
+    () =>
+      nodeContext
+        ? `Hi, I’m ${assistantPersona.name}. I can help with ${nodeContext.nodeLabel} and ${tenantName}'s day-to-day operations.`
+        : `Hi, I’m ${assistantPersona.name}. I can help with ${tenantName}'s day-to-day operations.`,
+    [nodeContext, tenantName]
+  );
+  const promptLibrary = useMemo(
+    () =>
+      nodeContext
+        ? [
+            `Explain ${nodeContext.nodeLabel} and its current health.`,
+            `Investigate ${nodeContext.nodeLabel} for upstream and downstream risk.`,
+            ...samplePrompts,
+          ]
+        : samplePrompts,
+    [nodeContext]
   );
 
   useEffect(() => {
@@ -86,6 +104,8 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
           tenantSlug,
           threadId,
           question: value,
+          mode: nodeContext && /explain|investigate|downstream|upstream|node/i.test(value) ? "node" : undefined,
+          nodeContext,
         }),
       });
 
@@ -104,47 +124,89 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
     }
   }
 
+  async function confirmAction(messageId: string, action: AssistantActionRecord) {
+    const actionKey = `${messageId}:${action.id}`;
+    setActionStatus((current) => ({ ...current, [actionKey]: "loading" }));
+
+    try {
+      const response = await fetch("/api/copilot/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tenantSlug,
+          threadId,
+          actionId: action.id,
+          type: action.type,
+          title: action.title,
+          detail: action.detail,
+          targetType: action.targetType,
+          targetId: action.targetId,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Action failed.");
+
+      setMessages((current) =>
+        current.map((message) => {
+          if (message.id !== messageId || message.role !== "assistant") return message;
+          return {
+            ...message,
+            payload: {
+              ...message.payload,
+              actions: message.payload.actions.map((candidate) =>
+                candidate.id === action.id ? { ...candidate, status: "confirmed" } : candidate
+              ),
+            },
+          };
+        })
+      );
+      setActionStatus((current) => ({ ...current, [actionKey]: payload.confirmationMessage }));
+    } catch (requestError) {
+      setActionStatus((current) => ({
+        ...current,
+        [actionKey]: requestError instanceof Error ? requestError.message : "Action failed.",
+      }));
+    }
+  }
+
   return (
     <>
-      {!open && showTooltip && (
-        <div className="fixed bottom-24 right-6 z-40 w-[min(340px,calc(100vw-2rem))] rounded-[24px] border border-[hsl(184,73%,61%)]/18 bg-[hsl(214,55%,6%)]/96 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.48)] backdrop-blur-2xl">
-          <div className="flex items-start gap-3">
-            <AssistantAvatar />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">{assistantPersona.name}</div>
-                  <div className="text-[0.7rem] uppercase tracking-[0.24em] text-[hsl(184,73%,61%)]/80">
-                    {assistantPersona.title}
+      <div className="fixed bottom-6 right-6 z-40">
+        {!open && showTooltip && (
+          <div className="absolute bottom-[calc(100%+0.9rem)] right-0 w-[min(300px,calc(100vw-2rem))] rounded-[22px] border border-[hsl(184,73%,61%)]/18 bg-[hsl(214,55%,6%)]/96 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.48)] backdrop-blur-2xl">
+            <div className="absolute -bottom-2 right-10 h-4 w-4 rotate-45 rounded-[4px] border-b border-r border-[hsl(184,73%,61%)]/18 bg-[hsl(214,55%,6%)]/96" />
+            <div className="flex items-start gap-3">
+              <AssistantAvatar />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-white">{assistantPersona.name}</div>
+                    <div className="text-[0.72rem] text-white/45">{assistantPersona.title}</div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={markIntroSeen}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-white/35 transition hover:text-white"
+                    aria-label="Dismiss assistant introduction"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={markIntroSeen}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/35 transition hover:text-white"
-                  aria-label="Dismiss assistant introduction"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-white/60">
-                I’m here whenever you want a quick answer or a faster way to work through operations.
-              </p>
-              <div className="mt-4 flex items-center gap-2">
+                <p className="mt-2 text-sm leading-6 text-white/60">
+                  I’m here whenever you want a quick answer or a faster way to work through operations.
+                </p>
                 <button
                   type="button"
                   onClick={openAssistant}
-                  className="inline-flex items-center gap-2 rounded-full bg-[hsl(184,73%,61%)] px-4 py-2 text-sm font-semibold text-slate-950 transition hover:brightness-105"
+                  className="mt-3 inline-flex items-center gap-2 rounded-full bg-[hsl(184,73%,61%)] px-3.5 py-2 text-sm font-semibold text-slate-950 transition hover:brightness-105"
                 >
                   Open {assistantPersona.name}
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      <div className="fixed bottom-6 right-6 z-40">
+        )}
         <button
           type="button"
           onClick={openAssistant}
@@ -187,7 +249,7 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
                 <button
                   type="button"
                   onClick={closeAssistant}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/45 transition hover:bg-white/8 hover:text-white"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-white/45 transition hover:text-white"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -201,7 +263,7 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
                     {assistantPersona.intro}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {samplePrompts.map((prompt) => (
+                    {promptLibrary.map((prompt) => (
                       <button
                         key={prompt}
                         type="button"
@@ -226,8 +288,11 @@ export function TenantCopilot({ tenantSlug, tenantName }: TenantCopilotProps) {
                     ) : (
                       <AssistantBubble
                         key={message.id}
+                        messageId={message.id}
                         payload={message.payload}
                         onPromptClick={(prompt) => void submitQuestion(prompt)}
+                        onConfirmAction={(action) => void confirmAction(message.id, action)}
+                        actionStatus={actionStatus}
                       />
                     )
                   ))}
@@ -299,11 +364,17 @@ function AssistantAvatar() {
 }
 
 function AssistantBubble({
+  messageId,
   payload,
   onPromptClick,
+  onConfirmAction,
+  actionStatus,
 }: {
+  messageId: string;
   payload: AssistantResponse;
   onPromptClick: (prompt: string) => void;
+  onConfirmAction: (action: AssistantActionRecord) => void;
+  actionStatus: Record<string, string>;
 }) {
   return (
     <div className="rounded-[24px] border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,14%)] p-4">
@@ -329,6 +400,108 @@ function AssistantBubble({
         </div>
       )}
 
+      {payload.morningBrief && (
+        <div className="mt-4 rounded-2xl border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,10%)] p-3.5">
+          <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/30">Morning brief</div>
+          <div className="text-sm font-medium text-white/80">{payload.morningBrief.headline}</div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {[
+              { label: "Top risks", items: payload.morningBrief.topRisks },
+              { label: "Delayed shipments", items: payload.morningBrief.delayedShipments },
+              { label: "Low stock", items: payload.morningBrief.lowStock },
+              { label: "Blocked approvals", items: payload.morningBrief.blockedApprovals },
+            ].map((group) => (
+              <div key={group.label} className="rounded-xl bg-[hsl(220,70%,12%)] px-3 py-2.5">
+                <div className="text-[0.62rem] uppercase tracking-[0.2em] text-white/30">{group.label}</div>
+                <ul className="mt-1.5 space-y-1 text-xs leading-5 text-white/55">
+                  {group.items.length ? group.items.map((item) => <li key={item}>{item}</li>) : <li>None right now.</li>}
+                </ul>
+              </div>
+            ))}
+          </div>
+          {payload.morningBrief.suggestedNextActions.length > 0 && (
+            <div className="mt-3">
+              <div className="text-[0.62rem] uppercase tracking-[0.2em] text-white/30">Suggested next actions</div>
+              <div className="mt-1.5 flex flex-wrap gap-2">
+                {payload.morningBrief.suggestedNextActions.map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-[hsl(184,73%,61%)]/16 bg-[hsl(184,73%,61%)]/10 px-3 py-1 text-[0.72rem] text-[hsl(184,73%,61%)]/80"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {payload.investigation && (
+        <div className="mt-4 rounded-2xl border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,10%)] p-3.5">
+          <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/30">Investigate mode</div>
+          <div className="text-sm font-medium text-white/80">{payload.investigation.subject}</div>
+          <div className="mt-1 text-sm leading-6 text-white/60">{payload.investigation.summary}</div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div>
+              <div className="text-[0.62rem] uppercase tracking-[0.2em] text-white/30">Findings</div>
+              <ul className="mt-1.5 space-y-1 text-xs leading-5 text-white/55">
+                {payload.investigation.findings.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
+            <div>
+              <div className="text-[0.62rem] uppercase tracking-[0.2em] text-white/30">Root causes</div>
+              <ul className="mt-1.5 space-y-1 text-xs leading-5 text-white/55">
+                {payload.investigation.rootCauses.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
+          </div>
+          {payload.investigation.recommendedNextStep && (
+            <div className="mt-3 rounded-xl border border-[hsl(184,73%,61%)]/16 bg-[hsl(184,73%,61%)]/10 px-3 py-2 text-xs leading-5 text-[hsl(184,73%,61%)]/80">
+              Next step: {payload.investigation.recommendedNextStep}
+            </div>
+          )}
+        </div>
+      )}
+
+      {payload.nodeInsight && (
+        <div className="mt-4 rounded-2xl border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,10%)] p-3.5">
+          <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/30">Canvas-aware copilot</div>
+          <div className="text-sm font-medium text-white/80">{payload.nodeInsight.nodeLabel}</div>
+          <div className="mt-1 text-sm leading-6 text-white/60">{payload.nodeInsight.explanation}</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.72rem] text-white/55">
+              {payload.nodeInsight.currentHealth}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.72rem] text-white/55">
+              {payload.nodeInsight.recommendedIntervention}
+            </span>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div>
+              <div className="text-[0.62rem] uppercase tracking-[0.2em] text-white/30">Upstream risks</div>
+              <ul className="mt-1.5 space-y-1 text-xs leading-5 text-white/55">
+                {payload.nodeInsight.upstreamRisks.length ? (
+                  payload.nodeInsight.upstreamRisks.map((item) => <li key={item}>{item}</li>)
+                ) : (
+                  <li>No upstream pressure right now.</li>
+                )}
+              </ul>
+            </div>
+            <div>
+              <div className="text-[0.62rem] uppercase tracking-[0.2em] text-white/30">Downstream risks</div>
+              <ul className="mt-1.5 space-y-1 text-xs leading-5 text-white/55">
+                {payload.nodeInsight.downstreamRisks.length ? (
+                  payload.nodeInsight.downstreamRisks.map((item) => <li key={item}>{item}</li>)
+                ) : (
+                  <li>No downstream impact highlighted.</li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {payload.alerts.length > 0 && (
         <div className="mt-4">
           <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/30">Alerts</div>
@@ -337,8 +510,53 @@ function AssistantBubble({
               <div key={`${alert.label}-${alert.detail}`} className="rounded-xl border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,9%)] px-3 py-2 text-sm">
                 <div className="font-medium text-white/75">{alert.label}</div>
                 <div className="text-white/45">{alert.detail}</div>
+                {alert.whyItMatters && (
+                  <div className="mt-1 text-xs text-white/35">Why it matters: {alert.whyItMatters}</div>
+                )}
+                {alert.nextAction && (
+                  <div className="mt-1 text-xs text-[hsl(184,73%,61%)]/75">Next action: {alert.nextAction}</div>
+                )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {payload.actions.length > 0 && (
+        <div className="mt-4">
+          <div className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/30">Recommended actions</div>
+          <div className="space-y-2">
+            {payload.actions.map((action) => {
+              const actionKey = `${messageId}:${action.id}`;
+              const feedback = actionStatus[actionKey];
+              const confirmed = action.status !== "pending";
+
+              return (
+                <div key={action.id} className="rounded-xl border border-[hsl(220,70%,55%)]/20 bg-[hsl(220,70%,9%)] px-3 py-3 text-sm">
+                  <div className="font-medium text-white/80">{action.title}</div>
+                  <div className="mt-1 text-white/45">{action.detail}</div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="text-[0.68rem] uppercase tracking-[0.18em] text-white/30">{action.targetType.replace(/_/g, " ")} · {action.targetId}</div>
+                    <button
+                      type="button"
+                      disabled={confirmed || feedback === "loading"}
+                      onClick={() => onConfirmAction(action)}
+                      className={cn(
+                        "rounded-full px-3 py-1.5 text-[0.72rem] font-medium transition",
+                        confirmed
+                          ? "bg-emerald-500/15 text-emerald-300"
+                          : "bg-[hsl(184,73%,61%)] text-slate-950 hover:brightness-105"
+                      )}
+                    >
+                      {feedback === "loading" ? "Working…" : confirmed ? "Confirmed" : action.confirmLabel}
+                    </button>
+                  </div>
+                  {feedback && feedback !== "loading" && (
+                    <div className="mt-2 text-xs text-white/45">{feedback}</div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

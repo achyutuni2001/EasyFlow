@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Area,
   AreaChart,
@@ -153,16 +153,43 @@ const shortName: Record<string, string> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ForecastingDashboard() {
+export function ForecastingDashboard({ tenantSlug }: { tenantSlug?: string }) {
+  const pinnedTenant = tenantSlug
+    ? tenantSeeds.find((t) => t.slug === tenantSlug || t.name.toLowerCase().replace(/\s+/g, "-") === tenantSlug)
+    : null;
+
   const [activeTenants, setActiveTenants] = useState<Set<string>>(
-    new Set(tenantSeeds.map((t) => t.name))
+    new Set(pinnedTenant ? [pinnedTenant.name] : [])
   );
+
+  useEffect(() => {
+    setActiveTenants(new Set(pinnedTenant ? [pinnedTenant.name] : []));
+  }, [tenantSlug]);
+
+  // No tenant selected — show prompt
+  if (!pinnedTenant) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 text-center">
+        <div className="mb-4 text-4xl">📊</div>
+        <h2 className="text-lg font-semibold text-white">No tenant selected</h2>
+        <p className="mt-2 max-w-sm text-sm text-white/45">
+          Forecasting is scoped to a specific tenant. Select a company workspace from the Globe to view its demand signals.
+        </p>
+        <a
+          href="/globe"
+          className="mt-6 inline-flex items-center gap-2 rounded-full border border-[hsl(184,73%,61%)]/30 bg-[hsl(184,73%,61%)]/10 px-5 py-2 text-sm font-medium text-[hsl(184,73%,61%)] transition hover:bg-[hsl(184,73%,61%)]/20"
+        >
+          Go to Globe →
+        </a>
+      </div>
+    );
+  }
 
   function toggleTenant(name: string) {
     setActiveTenants((prev) => {
       const next = new Set(prev);
       if (next.has(name)) {
-        if (next.size === 1) return prev; // keep at least one
+        if (next.size === 1) return prev;
         next.delete(name);
       } else {
         next.add(name);
@@ -176,23 +203,13 @@ export function ForecastingDashboard() {
   return (
     <div className="grid gap-6">
 
-      {/* Tenant filter pills */}
-      <div className="flex flex-wrap gap-2">
-        {tenantSeeds.map((t) => (
-          <button
-            key={t.name}
-            type="button"
-            onClick={() => toggleTenant(t.name)}
-            className="rounded-full border px-3 py-1.5 text-xs font-medium transition"
-            style={{
-              borderColor: activeTenants.has(t.name) ? tenantColours[t.name] : "rgba(255,255,255,0.1)",
-              color: activeTenants.has(t.name) ? tenantColours[t.name] : "rgba(238,244,251,0.4)",
-              background: activeTenants.has(t.name) ? `${tenantColours[t.name]}14` : "transparent",
-            }}
-          >
-            {shortName[t.name]}
-          </button>
-        ))}
+      {/* Tenant pill — always locked to one tenant */}
+      <div className="flex items-center gap-2">
+        <span className="rounded-full border px-3 py-1.5 text-xs font-medium"
+          style={{ borderColor: tenantColours[pinnedTenant.name], color: tenantColours[pinnedTenant.name], background: `${tenantColours[pinnedTenant.name]}14` }}>
+          {pinnedTenant.name}
+        </span>
+        <span className="text-xs text-white/30">Showing data for this tenant only</span>
       </div>
 
       {/* Top row: Demand forecast + Urgency radial */}

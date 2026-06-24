@@ -1,10 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Bell, ChevronsLeftRight, Menu, Moon, Sun } from "lucide-react";
+import { Bell, ChevronsLeftRight, Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/components/theme-provider";
 
 // Loaded client-side only — avoids useSession/useRef SSR issues
 const NavbarProfile = dynamic(
@@ -20,8 +19,6 @@ type NavbarProps = {
 };
 
 export function Navbar({ title, subtitle, onMenuToggle, onSidebarCollapse }: NavbarProps) {
-  const { theme, toggle } = useTheme();
-
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl">
       <div className="flex items-center justify-between gap-2 px-4 py-1.5 md:px-6">
@@ -49,16 +46,6 @@ export function Navbar({ title, subtitle, onMenuToggle, onSidebarCollapse }: Nav
         <div className="hidden flex-1 xl:block" />
 
         <div className="flex items-center gap-2">
-          {/* Theme toggle */}
-          <button
-            type="button"
-            onClick={toggle}
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
-          >
-            {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-          </button>
-
           <button
             type="button"
             className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-muted-foreground"

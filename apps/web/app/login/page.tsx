@@ -91,7 +91,7 @@ function AuthPage() {
 
         {/* Back to home */}
         <Link href="/landing" className="flex items-center group w-fit">
-          <LogoWordmark className="h-8 w-[180px]" />
+          <LogoWordmark className="h-20 w-[450px]" />
         </Link>
 
         {/* Hero copy */}

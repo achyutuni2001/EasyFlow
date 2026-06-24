@@ -16,6 +16,8 @@ const TT = {
   itemStyle:    { color: "rgba(255,255,255,0.85)" },
 };
 
+const BRAND_CYAN = "hsl(184,73%,61%)";
+
 const routeStatusStyle: Record<string, string> = {
   "Active":           "bg-[hsl(82,78%,71%)]/10 text-[hsl(82,78%,71%)] border-[hsl(82,78%,71%)]/20",
   "On Schedule":      "bg-[hsl(184,73%,61%)]/10 text-[hsl(184,73%,61%)] border-[hsl(184,73%,61%)]/20",
@@ -62,7 +64,7 @@ export default function LogisticManagementPage({ params }: { params: { tenant: s
   return (
     <div className="space-y-7">
       <div>
-        <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(200,80%,65%)]">
+        <div className="flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.38em] text-[hsl(184,73%,61%)]">
           <Route className="h-3.5 w-3.5" /> Logistic Management
         </div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">{tenant.name} — Logistic Management</h1>
@@ -72,7 +74,7 @@ export default function LogisticManagementPage({ params }: { params: { tenant: s
         {[
           { label: "Routes",       value: routes.length,         icon: Route,  colour: "text-white" },
           { label: "Active",       value: activeRoutes,          icon: MapPin, colour: "text-[hsl(82,78%,71%)]" },
-          { label: "Fleet",        value: fleet.length,          icon: Car,    colour: "text-[hsl(200,80%,65%)]" },
+          { label: "Fleet",        value: fleet.length,          icon: Car,    colour: "text-[hsl(184,73%,61%)]" },
           { label: "Maintenance",  value: maintenanceVehicles,   icon: Wrench, colour: maintenanceVehicles > 2 ? "text-yellow-300" : "text-white/40" },
         ].map(({ label, value, icon: Icon, colour }) => (
           <div key={label} className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4">
@@ -96,7 +98,7 @@ export default function LogisticManagementPage({ params }: { params: { tenant: s
               <YAxis domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip {...TT} />
               <Legend wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }} />
-              <Bar dataKey="utilization" name="Utilization %" fill="hsl(200,80%,65%)" opacity={0.75} radius={[4,4,0,0]} />
+              <Bar dataKey="utilization" name="Utilization %" fill={BRAND_CYAN} opacity={0.75} radius={[4,4,0,0]} />
               <Bar dataKey="stops"       name="Stops"         fill="hsl(25,95%,63%)"  opacity={0.55} radius={[4,4,0,0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -120,7 +122,7 @@ export default function LogisticManagementPage({ params }: { params: { tenant: s
       {/* Routes table */}
       <div className="rounded-[24px] border border-white/10 bg-white/[0.03] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-          <div className="flex items-center gap-2.5"><Route className="h-4 w-4 text-[hsl(200,80%,65%)]" /><span className="text-sm font-semibold text-white">Route Schedule</span></div>
+          <div className="flex items-center gap-2.5"><Route className="h-4 w-4 text-[hsl(184,73%,61%)]" /><span className="text-sm font-semibold text-white">Route Schedule</span></div>
           <div className="text-[0.65rem] uppercase tracking-[0.24em] text-white/30">{routes.length} routes</div>
         </div>
         <div className="overflow-x-auto">
@@ -157,7 +159,7 @@ export default function LogisticManagementPage({ params }: { params: { tenant: s
       {/* Fleet table */}
       <div className="rounded-[24px] border border-white/10 bg-white/[0.03] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-          <div className="flex items-center gap-2.5"><Car className="h-4 w-4 text-[hsl(200,80%,65%)]" /><span className="text-sm font-semibold text-white">Fleet Registry</span></div>
+          <div className="flex items-center gap-2.5"><Car className="h-4 w-4 text-[hsl(184,73%,61%)]" /><span className="text-sm font-semibold text-white">Fleet Registry</span></div>
           <div className="text-[0.65rem] text-white/30">{inServiceVehicles} operational · {maintenanceVehicles} in maintenance</div>
         </div>
         <div className="overflow-x-auto">

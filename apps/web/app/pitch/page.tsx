@@ -62,7 +62,7 @@ const flows = [
   },
   {
     title: "Risk is scored automatically",
-    body: "Stockout probability, supplier delay risk, and order slip forecasts are computed continuously and surfaced the moment they become actionable.",
+    body: "Stockout probability, supplier delay risk, and demand forecasts are computed per tenant and scoped in isolation — each company sees only its own forward-looking signals.",
     icon: Radar,
   },
   {
@@ -112,7 +112,7 @@ export default function PitchPage() {
       <div className="relative z-10">
         <PublicSiteHeader variant="light" current="pitch" />
 
-        <main className="px-6 pb-24 pt-10 md:px-10">
+        <main className="px-6 pb-24 pt-28 md:px-10 md:pt-32">
           <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
             <div className="max-w-2xl rounded-[34px] border border-slate-200 bg-[#f3f7fb] p-7 shadow-[0_28px_90px_rgba(15,23,42,0.16)] md:p-8">
               <div className="inline-flex items-center rounded-full border border-slate-900/8 bg-slate-50 px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-slate-500">

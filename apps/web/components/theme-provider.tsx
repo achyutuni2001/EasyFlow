@@ -21,12 +21,12 @@ export function useTheme() {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
-  // Read saved preference on mount
   useEffect(() => {
-    const saved = localStorage.getItem("easyflow-theme") as Theme | null;
-    const preferred = saved ?? "dark";
-    setTheme(preferred);
-    applyTheme(preferred);
+    setTheme("dark");
+    applyTheme("dark");
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("easyflow-theme", "dark");
+    }
   }, []);
 
   function applyTheme(t: Theme) {
@@ -41,10 +41,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   function toggle() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    applyTheme(next);
-    localStorage.setItem("easyflow-theme", next);
+    setTheme("dark");
+    applyTheme("dark");
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("easyflow-theme", "dark");
+    }
   }
 
   return (

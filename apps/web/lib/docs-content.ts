@@ -884,6 +884,7 @@ docker compose up -d --build
     blocks: [
       { type: "h2", id: "what", text: "What is a workspace" },
       { type: "p", text: "A workspace (also called a tenant) is one company's private home inside EasyFlow. Every workspace has its own team, its own workflows, its own ERP connections, and its own data. Two workspaces never see each other's information." },
+      { type: "p", text: "Tenant isolation applies across every surface — including the Forecasting page. When you navigate to Forecasting from inside a tenant workspace, EasyFlow automatically scopes all charts, demand projections, inventory coverage data, and urgency scores to that tenant only. No other company's data is ever shown." },
       { type: "callout", variant: "info", text: "If you manage supply chain operations for multiple companies — as a 3PL, a consultant, or a holding group — each company is a separate workspace. You switch between them from the Globe screen." },
 
       { type: "h2", id: "creating", text: "Creating a workspace" },
@@ -1323,8 +1324,9 @@ curl -X POST https://your-easyflow.com/api/integrations/databricks/ingest?tenant
     blocks: [
       { type: "h2", id: "creating", text: "Creating a workspace" },
       { type: "callout", variant: "info", text: "Only Super Admins can create new workspaces." },
+      { type: "p", text: "You can start tenant creation from two places: click New Tenant on the Globe page (/globe), or open the Admin Portal directly (/admin) and click + New Tenant in the Tenants tab." },
       { type: "steps", items: [
-        { title: "Open Admin Portal", body: "Click the purple shield icon in the sidebar." },
+        { title: "Open Admin Portal", body: "Click the purple shield icon in the sidebar, or use the New Tenant button on the Globe page." },
         { title: "Click New Tenant", body: "Top-right of the Tenants table." },
         { title: "Step 1 — Company details", body: "Name, industry, operational mode, headquarters, region, plan." },
         { title: "Step 2 — Supply chain modules", body: "Select which modules to enable." },
@@ -1359,7 +1361,12 @@ curl -X POST https://your-easyflow.com/api/integrations/databricks/ingest?tenant
       ]},
 
       { type: "h2", id: "role", text: "Changing a role" },
-      { type: "p", text: "Find the user in the Users tab. Click Suspend / Activate or the role badge to change their role. Changes take effect on their next page load." },
+      { type: "p", text: "There are two places to change a user's role:" },
+      { type: "list", items: [
+        "Admin Portal → Users tab: click the role badge next to a user to pick a new role from the dropdown.",
+        "Settings → Users & Roles tab: shows all platform users with an inline role selector. Changes save immediately without leaving Settings.",
+      ]},
+      { type: "callout", variant: "info", text: "Only Super Admins can change roles. The Super Admin role itself cannot be reassigned from either surface." },
 
       { type: "h2", id: "suspend", text: "Suspending access" },
       { type: "p", text: "Click Suspend next to a user's name. Their account is disabled but their history is preserved. Click Activate to restore access." },

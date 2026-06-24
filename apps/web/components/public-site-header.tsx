@@ -52,19 +52,19 @@ export function PublicSiteHeader({
     <header className="fixed inset-x-0 top-0 z-30 px-0 py-0 md:px-0">
       <div
         className={`flex items-center justify-center transition-all duration-300 ${
-          scrolled ? "px-4 py-2 md:px-6" : "px-0 py-0"
+          scrolled ? "px-2 py-2 md:px-6" : "px-0 py-0"
         }`}
       >
       <div
         className={`mx-auto relative flex w-full items-center justify-between gap-4 border transition-all duration-300 ${
           scrolled
-            ? "max-w-6xl rounded-[999px] px-5 py-1.5 md:px-7"
-            : "max-w-none rounded-none border-x-0 border-t-0 px-6 py-2 md:px-10"
+            ? "max-w-6xl rounded-[999px] px-3 py-1.5 md:px-7"
+            : "max-w-none rounded-none border-x-0 border-t-0 px-4 py-2 md:px-10"
         } ${shellClass}`}
       >
         <Link href="/landing" className="flex items-center">
           <LogoWordmark
-            className="h-[2.75rem] w-[270px] md:h-[3rem] md:w-[320px]"
+            className="h-[2rem] w-[150px] md:h-[3rem] md:w-[320px]"
             lightSurface={!isDark}
           />
         </Link>
@@ -92,16 +92,16 @@ export function PublicSiteHeader({
           </a>
         </nav>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <Link
             href="/globe"
-            className={`rounded-full border px-4 py-1 text-[0.78rem] font-medium transition ${buttonGhostClass}`}
+            className={`rounded-full border px-3 py-1 text-[0.72rem] font-medium transition md:px-4 md:text-[0.78rem] ${buttonGhostClass}`}
           >
             Open app
           </Link>
           <Link
             href="/login"
-            className={`rounded-full px-4 py-1 text-[0.78rem] font-semibold transition ${buttonPrimaryClass}`}
+            className={`rounded-full px-3 py-1 text-[0.72rem] font-semibold transition md:px-4 md:text-[0.78rem] ${buttonPrimaryClass}`}
           >
             Sign in
           </Link>
